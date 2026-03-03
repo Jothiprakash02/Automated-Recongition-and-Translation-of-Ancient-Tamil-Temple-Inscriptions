@@ -1,0 +1,33 @@
+# ── Core API ─────────────────────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+pydantic==2.7.1
+
+# ── Database ─────────────────────────────────
+sqlalchemy==2.0.30
+
+# ── HTTP ─────────────────────────────────────
+requests==2.31.0
+
+# ── Scraping ─────────────────────────────────
+beautifulsoup4==4.12.3
+lxml==5.2.1                 # faster HTML parser for BS4; required by _fetch_page
+
+# ── Google Trends ─────────────────────────────
+pytrends==4.9.2
+
+# ── Google Ads Keyword Planner API (Tier 1 keyword research) ──────────────────
+google-ads==24.1.0          # pip install google-ads
+                            # Requires env vars: GOOGLE_ADS_DEVELOPER_TOKEN,
+                            # GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET,
+                            # GOOGLE_ADS_REFRESH_TOKEN, GOOGLE_ADS_LOGIN_CUSTOMER_ID
+                            # OR: place google-ads.yaml in project root
+
+# ── Exchange rates (live USD→local for supplier cost) ─────────────────────────
+# Uses https://open.er-api.com/v6/latest/USD (free, no key needed)
+
+# ── Frontend static file serving ─────────────
+aiofiles>=23.2.1            # required by FastAPI StaticFiles mount
+
+# ── Utilities ────────────────────────────────
+python-dotenv==1.0.1        # load .env file for API keys
