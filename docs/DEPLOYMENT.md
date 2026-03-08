@@ -31,10 +31,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose port
-EXPOSE 8000
+EXPOSE 8080
 
 # Run application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 ```
 
 ### Create docker-compose.yml
@@ -46,7 +46,7 @@ services:
   backend:
     build: .
     ports:
-      - "8000:8000"
+      - "8080:8080"
     environment:
       - DATABASE_URL=postgresql://marketmind:password@db:5432/marketmind
       - OLLAMA_BASE_URL=http://ollama:11434
@@ -124,7 +124,7 @@ server {
 
     # API proxy
     location /api/ {
-        proxy_pass http://backend:8000/;
+        proxy_pass http://backend:8080/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -145,7 +145,7 @@ server {
 docker-compose up -d
 
 # Pull Ollama model
-docker-compose exec ollama ollama pull llama3:8b
+docker-compose exec ollama ollama pull llama3:latest
 
 # Check logs
 docker-compose logs -f backend
@@ -256,7 +256,7 @@ sudo -u postgres psql -c "ALTER USER marketmind WITH PASSWORD 'your_password';"
 
 # Install Ollama
 curl https://ollama.ai/install.sh | sh
-ollama pull llama3:8b
+ollama pull llama3:latest
 
 # Clone repository
 git clone https://github.com/yourusername/marketmind-ai.git
@@ -288,7 +288,7 @@ server {
     server_name your-domain.com;
 
     location /api/ {
-        proxy_pass http://127.0.0.1:8000/;
+        proxy_pass http://127.0.0.1:8080/;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
     }
@@ -315,7 +315,7 @@ Type=simple
 User=ubuntu
 WorkingDirectory=/home/ubuntu/marketmind-ai
 Environment="PATH=/home/ubuntu/marketmind-ai/venv/bin"
-ExecStart=/home/ubuntu/marketmind-ai/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+ExecStart=/home/ubuntu/marketmind-ai/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8080
 Restart=always
 
 [Install]
@@ -514,7 +514,7 @@ DATABASE_URL=postgresql://user:password@host:5432/marketmind
 
 # Ollama
 OLLAMA_BASE_URL=http://ollama-service:11434
-OLLAMA_MODEL=llama3:8b
+OLLAMA_MODEL=llama3:latest
 OLLAMA_TIMEOUT=180
 
 # API Keys

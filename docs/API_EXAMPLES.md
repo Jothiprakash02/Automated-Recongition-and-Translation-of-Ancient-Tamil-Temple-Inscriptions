@@ -7,7 +7,7 @@ Complete examples for all API endpoints with curl, Python, and JavaScript.
 ## Base URL
 
 ```
-http://localhost:8000
+http://localhost:8080
 ```
 
 For production, replace with your domain.
@@ -18,20 +18,20 @@ For production, replace with your domain.
 
 ### curl
 ```bash
-curl http://localhost:8000/health
+curl http://localhost:8080/health
 ```
 
 ### Python
 ```python
 import requests
 
-response = requests.get("http://localhost:8000/health")
+response = requests.get("http://localhost:8080/health")
 print(response.json())
 ```
 
 ### JavaScript
 ```javascript
-fetch('http://localhost:8000/health')
+fetch('http://localhost:8080/health')
   .then(res => res.json())
   .then(data => console.log(data));
 ```
@@ -50,7 +50,7 @@ fetch('http://localhost:8000/health')
 
 ### curl
 ```bash
-curl -X POST http://localhost:8000/discover-trends \
+curl -X POST http://localhost:8080/discover-trends \
   -H "Content-Type: application/json" \
   -d '{
     "region": "India",
@@ -70,7 +70,7 @@ payload = {
 }
 
 response = requests.post(
-    "http://localhost:8000/discover-trends",
+    "http://localhost:8080/discover-trends",
     json=payload,
     timeout=120
 )
@@ -89,7 +89,7 @@ const payload = {
   time_range: "3_months"
 };
 
-fetch('http://localhost:8000/discover-trends', {
+fetch('http://localhost:8080/discover-trends', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(payload)
@@ -154,7 +154,7 @@ fetch('http://localhost:8000/discover-trends', {
 
 ### curl
 ```bash
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type": application/json" \
   -d '{
     "product": "portable blender",
@@ -178,7 +178,7 @@ payload = {
 }
 
 response = requests.post(
-    "http://localhost:8000/analyze-product",
+    "http://localhost:8080/analyze-product",
     json=payload,
     timeout=180
 )
@@ -205,7 +205,7 @@ const payload = {
   cost_per_unit: 900
 };
 
-fetch('http://localhost:8000/analyze-product', {
+fetch('http://localhost:8080/analyze-product', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(payload)
@@ -306,7 +306,7 @@ fetch('http://localhost:8000/analyze-product', {
 
 ### curl
 ```bash
-curl -X POST http://localhost:8000/analyze \
+curl -X POST http://localhost:8080/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "product": "yoga mat",
@@ -332,7 +332,7 @@ payload = {
 }
 
 response = requests.post(
-    "http://localhost:8000/analyze",
+    "http://localhost:8080/analyze",
     json=payload,
     timeout=180
 )
@@ -393,14 +393,14 @@ print(f"  Monthly Profit: {data['optimization']['monthly_profit']}")
 
 ### curl
 ```bash
-curl "http://localhost:8000/history?limit=10"
+curl "http://localhost:8080/history?limit=10"
 ```
 
 ### Python
 ```python
 import requests
 
-response = requests.get("http://localhost:8000/history", params={"limit": 10})
+response = requests.get("http://localhost:8080/history", params={"limit": 10})
 history = response.json()
 
 for i, record in enumerate(history, 1):
@@ -412,7 +412,7 @@ for i, record in enumerate(history, 1):
 
 ### JavaScript
 ```javascript
-fetch('http://localhost:8000/history?limit=10')
+fetch('http://localhost:8080/history?limit=10')
   .then(res => res.json())
   .then(history => {
     history.forEach((record, i) => {
@@ -497,7 +497,7 @@ for product in products:
     
     try:
         response = requests.post(
-            "http://localhost:8000/analyze-product",
+            "http://localhost:8080/analyze-product",
             json=payload,
             timeout=180
         )
@@ -535,7 +535,7 @@ for i, r in enumerate(results[:3], 1):
 
 ```javascript
 // Real-time analysis updates
-const ws = new WebSocket('ws://localhost:8000/ws/analyze');
+const ws = new WebSocket('ws://localhost:8080/ws/analyze');
 
 ws.onopen = () => {
   ws.send(JSON.stringify({
@@ -579,12 +579,12 @@ X-RateLimit-Reset: 1709550000
 
 ```bash
 # Get API key
-curl -X POST http://localhost:8000/auth/register \
+curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"user@example.com","password":"secure123"}'
 
 # Use API key
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"product":"yoga mat",...}'
@@ -592,4 +592,4 @@ curl -X POST http://localhost:8000/analyze-product \
 
 ---
 
-**For more examples, see the interactive API docs at http://localhost:8000/docs**
+**For more examples, see the interactive API docs at http://localhost:8080/docs**

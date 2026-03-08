@@ -13,7 +13,7 @@ Run these tests to ensure everything is working correctly.
 python main.py
 
 # In another terminal, test health endpoint
-curl http://localhost:8000/health
+curl http://localhost:8080/health
 ```
 
 **Expected Output:**
@@ -31,7 +31,7 @@ curl http://localhost:8000/health
 ### Without Reddit API (Minimum Setup)
 
 ```bash
-curl -X POST http://localhost:8000/discover-trends \
+curl -X POST http://localhost:8080/discover-trends \
   -H "Content-Type: application/json" \
   -d '{
     "region": "India",
@@ -44,7 +44,7 @@ curl -X POST http://localhost:8000/discover-trends \
 ### With Reddit API
 
 ```bash
-curl -X POST http://localhost:8000/discover-trends \
+curl -X POST http://localhost:8080/discover-trends \
   -H "Content-Type: application/json" \
   -d '{
     "region": "US",
@@ -62,7 +62,7 @@ curl -X POST http://localhost:8000/discover-trends \
 ### Basic Analysis (No API Keys Required)
 
 ```bash
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type: application/json" \
   -d '{
     "product": "yoga mat",
@@ -99,7 +99,7 @@ curl -X POST http://localhost:8000/analyze-product \
 ### With Manual Cost Override
 
 ```bash
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type: application/json" \
   -d '{
     "product": "portable blender",
@@ -117,7 +117,7 @@ curl -X POST http://localhost:8000/analyze-product \
 ## 4. Test Full Pipeline
 
 ```bash
-curl -X POST http://localhost:8000/analyze \
+curl -X POST http://localhost:8080/analyze \
   -H "Content-Type: application/json" \
   -d '{
     "product": "resistance bands",
@@ -135,7 +135,7 @@ curl -X POST http://localhost:8000/analyze \
 
 ```bash
 # After running a few analyses
-curl http://localhost:8000/history?limit=5
+curl http://localhost:8080/history?limit=5
 ```
 
 **Expected**: Array of past analyses with timestamps
@@ -233,7 +233,7 @@ print(f"Found {len(results)} products")
 curl http://localhost:11434/api/tags
 ```
 
-**Expected**: JSON with list of installed models (should include llama3:8b)
+**Expected**: JSON with list of installed models (should include llama3:latest)
 
 ---
 
@@ -242,7 +242,7 @@ curl http://localhost:11434/api/tags
 ### Invalid Product
 
 ```bash
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type: application/json" \
   -d '{
     "product": "xyzabc123nonexistent",
@@ -257,7 +257,7 @@ curl -X POST http://localhost:8000/analyze-product \
 ### Missing Required Fields
 
 ```bash
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type: application/json" \
   -d '{
     "product": "yoga mat"
@@ -271,7 +271,7 @@ curl -X POST http://localhost:8000/analyze-product \
 ```bash
 # Stop Ollama server
 # Then run analysis
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type: application/json" \
   -d '{
     "product": "yoga mat",
@@ -305,11 +305,11 @@ curl -X POST http://localhost:8000/analyze-product \
 # Mac: brew install ab
 
 # Test health endpoint
-ab -n 100 -c 10 http://localhost:8000/health
+ab -n 100 -c 10 http://localhost:8080/health
 
 # Test analysis endpoint (be careful, this is expensive)
 ab -n 5 -c 1 -p test_payload.json -T application/json \
-  http://localhost:8000/analyze-product
+  http://localhost:8080/analyze-product
 ```
 
 ---
@@ -388,7 +388,7 @@ For the same product analyzed twice:
 
 ```bash
 # Run analysis
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type: application/json" \
   -d '{"product":"test","country":"India","platform":"Amazon","budget":10000}'
 
@@ -419,7 +419,7 @@ sqlite3 temp/product_intelligence.db "SELECT COUNT(*) FROM analyses;"
 ### Verify All Modules Loaded
 
 ```bash
-curl http://localhost:8000/docs
+curl http://localhost:8080/docs
 ```
 
 **Expected**: Swagger UI with 4 sections:

@@ -16,7 +16,7 @@ Install these first:
 
 3. **Ollama** (for AI strategy)
    - Download: https://ollama.com
-   - Install model: `ollama pull llama3:8b`
+   - Install model: `ollama pull llama3:latest`
    - Start server: `ollama serve` (keep running)
 
 ### Step 2: Automated Setup
@@ -53,7 +53,7 @@ ollama serve
 ### Step 4: Open Browser
 
 - **Frontend**: http://localhost:5173
-- **API Docs**: http://localhost:8000/docs
+- **API Docs**: http://localhost:8080/docs
 
 ---
 
@@ -152,6 +152,7 @@ python main.py
 **Solution**: Start Ollama server
 ```bash
 ollama serve
+ollama pull llama3:latest
 ```
 
 ### "All keyword research tiers failed"
@@ -235,7 +236,7 @@ ollama serve
 
 ## 📞 Need Help?
 
-- **API Documentation**: http://localhost:8000/docs
+- **API Documentation**: http://localhost:8080/docs
 - **Check logs**: Terminal where `python main.py` is running
 - **GitHub Issues**: [your-repo-url]/issues
 - **Email**: [your-email]

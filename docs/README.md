@@ -1,10 +1,13 @@
 # MarketMind AI
 ### Autonomous Product Discovery & Launch Intelligence System
 
-> **Module 0**: Global Trend Scouting Engine (NEW)  
+> **Module 0**: Global Trend Scouting Engine  
 > **Module 1**: Seller Profile Configuration  
 > **Module 2**: Real-Time Market Intelligence  
 > **Module 3**: Profit Optimization Engine  
+> **Module 4**: AI Business Strategy Generation (Ollama)  
+> **AiAssistant**: Ollama-powered Context Chat  
+> **ContentGenerator**: SEO Content & Social Media Posts  
 
 **Zero static data. Zero fallbacks. 100% real market signals.**
 
@@ -55,7 +58,7 @@ Then ranks opportunities by:
 │  • Keyword research (3-tier: Google Ads → SerpAPI → SERP)   │
 │  • Supplier pricing (Alibaba/AliExpress → formula)          │
 │  • Scoring engine (demand, competition, viability)          │
-│  • LLM strategy (Llama3:8B via Ollama)                      │
+│  • LLM strategy (Llama3 via Ollama)                         │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -99,7 +102,7 @@ node --version
 
 # 3. Ollama (for LLM strategy)
 # Install from: https://ollama.com
-ollama pull llama3:8b
+ollama pull llama3:latest
 ollama serve  # Keep running in separate terminal
 ```
 
@@ -114,7 +117,7 @@ cd MarketMindAI
 pip install -r requirements.txt
 
 # 3. Install UI dependencies
-cd commerceos-ui
+cd marketmind-ui
 npm install
 cd ..
 
@@ -124,18 +127,18 @@ cp .env.example .env
 
 # 5. Start backend
 python main.py
-# Or: uvicorn main:app --reload --port 8000
+# Or: uvicorn main:app --reload --port 8080
 
 # 6. Start frontend (new terminal)
-cd commerceos-ui
+cd marketmind-ui
 npm run dev
 ```
 
 ### Access
 
 - **Frontend UI**: http://localhost:5173
-- **API Docs**: http://localhost:8000/docs
-- **Health Check**: http://localhost:8000/health
+- **API Docs**: http://localhost:8080/docs
+- **Health Check**: http://localhost:8080/health
 
 ---
 
@@ -255,12 +258,12 @@ POST /analyze
 
 ```bash
 # Test trend discovery (works without Reddit API)
-curl -X POST http://localhost:8000/discover-trends \
+curl -X POST http://localhost:8080/discover-trends \
   -H "Content-Type: application/json" \
   -d '{"region":"India","time_range":"3_months"}'
 
 # Test product analysis (works without any keys)
-curl -X POST http://localhost:8000/analyze-product \
+curl -X POST http://localhost:8080/analyze-product \
   -H "Content-Type: application/json" \
   -d '{
     "product":"portable blender",
@@ -282,14 +285,15 @@ curl -X POST http://localhost:8000/analyze-product \
 4. **Real Review Velocity**: Parses actual Amazon review timestamps (not estimates)
 5. **BSR → Sales Formula**: Converts Amazon Best Seller Rank to unit sales
 6. **Live Supplier Costs**: Scrapes Alibaba/AliExpress for real FOB pricing
-7. **LLM Strategy**: Qualitative insights from Llama3:8B (local, no API cost)
+7. **LLM Strategy**: Qualitative insights from Llama3 via Ollama (local, no API cost)
 
 ### Technical Depth
 
 - **Backend**: FastAPI, SQLAlchemy, pytrends, BeautifulSoup, Ollama
 - **Frontend**: React 19, Vite, custom cyberpunk UI (no component library)
 - **Data**: 8 real-time sources, 0 mock data
-- **Architecture**: Modular (4 independent modules)
+- **Architecture**: Modular (7 independent modules + pipeline orchestrator)
+- **LLM**: 100% local via Ollama — no cloud AI costs
 - **Deployment**: Docker-ready, PostgreSQL-compatible
 
 ---
@@ -299,14 +303,11 @@ curl -X POST http://localhost:8000/analyze-product \
 ```
 MarketMindAI/
 ├── TrendScout/              # Module 0 - Trend Discovery
-│   ├── services/
-│   │   └── trend_discovery.py
-│   ├── routers/
-│   │   └── discover.py
-│   └── schemas/
-│       └── trend_schema.py
-├── InputConfig/             # Module 1 - Profile
-├── AiMarketResearch/        # Module 2 - Intelligence
+│   ├── services/trend_discovery.py
+│   ├── routers/discover.py
+│   └── schemas/trend_schema.py
+├── InputConfig/             # Module 1 - Profile & Validation
+├── AiMarketResearch/        # Module 2 - Market Intelligence
 │   ├── services/
 │   │   ├── data_collection.py
 │   │   ├── keyword_research.py
@@ -314,16 +315,26 @@ MarketMindAI/
 │   │   ├── scoring_engine.py
 │   │   ├── profit_simulation.py
 │   │   └── llm_engine.py
-│   └── routers/
+│   └── routers/analyze.py
 ├── ProfitOptimizer/         # Module 3 - Optimization
+├── BusinessStrategy/        # Module 4 - AI Strategy (Ollama)
+│   └── services/
+│       ├── launch_strategy.py
+│       ├── positioning_engine.py
+│       ├── listing_generator.py
+│       ├── audience_generator.py
+│       ├── ad_strategy.py
+│       └── differentiation_engine.py
+├── AiAssistant/             # Ollama-powered chat assistant
+│   └── services/ollama_service.py
+├── ContentGenerator/        # SEO content & social media posts
 ├── pipeline/                # Full pipeline orchestration
-├── global/                  # Shared config, database
-├── commerceos-ui/           # React frontend
-│   └── src/
-│       └── App.jsx          # Single-file UI (632 lines)
-├── main.py                  # FastAPI entry point
+├── global/                  # Shared config, database, settings API
+├── marketmind-ui/           # React frontend (Vite, port 5173)
+│   └── src/App.jsx
+├── main.py                  # FastAPI entry point (port 8080)
 ├── requirements.txt
-└── README.md
+└── .env / .env.example
 ```
 
 ---
@@ -336,7 +347,7 @@ MarketMindAI/
 ollama serve
 
 # Pull model if not already downloaded
-ollama pull llama3:8b
+ollama pull llama3:latest
 ```
 
 ### "All keyword research tiers failed"
@@ -366,6 +377,7 @@ SERPAPI_KEY=your_production_key
 GOOGLE_ADS_DEVELOPER_TOKEN=your_token
 REDDIT_CLIENT_ID=your_id
 REDDIT_CLIENT_SECRET=your_secret
+# GEMINI_API_KEY not required — chat uses local Ollama
 ```
 
 ### Docker Deployment
@@ -377,12 +389,13 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8080
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 ```
 
 ```bash
 docker build -t marketmind-ai .
-docker run -p 8000:8000 --env-file .env marketmind-ai
+docker run -p 8080:8080 --env-file .env marketmind-ai
 ```
 
 ---
@@ -418,7 +431,7 @@ Contributions welcome! Please:
 ## 📞 Support
 
 - **Issues**: GitHub Issues
-- **Docs**: http://localhost:8000/docs (when running)
+- **Docs**: http://localhost:8080/docs (when running)
 - **Email**: [your-email]
 
 ---

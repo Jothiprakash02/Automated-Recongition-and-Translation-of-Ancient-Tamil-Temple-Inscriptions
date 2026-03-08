@@ -21,11 +21,9 @@ pytrends==4.9.2
 praw>=7.8.0                 # Python Reddit API Wrapper
                             # Requires: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET
 
-# ── Gemini AI (chat assistant) ────────────────────────────────────────────────
-google-genai>=1.0.0         # Google Gemini SDK (replaces deprecated google-generativeai)
-                            # Requires: GEMINI_API_KEY
-                            # Free key: https://aistudio.google.com/app/apikey
-                            # Model: models/gemini-2.0-flash-lite
+# ── Gemini AI (optional — uncomment to re-enable) ────────────────────────────
+# google-genai>=1.0.0       # Google Gemini SDK — requires GEMINI_API_KEY
+                            # Chat assistant currently uses Ollama (local, no key needed)
 
 # ── Data / export ────────────────────────────
 pandas>=2.3.0               # CSV export and data manipulation

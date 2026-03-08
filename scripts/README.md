@@ -10,7 +10,7 @@ Prepares your environment by:
 - Installing Python dependencies
 - Installing frontend dependencies
 - Creating .env file from template
-- Downloading Ollama model (llama3:8b)
+- Downloading Ollama model (llama3:latest)
 
 **Usage:**
 ```bash
@@ -27,7 +27,7 @@ scripts\setup.bat
 **Automatically starts ALL services** in the background:
 1. Ollama server (port 11434)
 2. Backend API (port 8080)
-3. Frontend UI (port 5174)
+3. Frontend UI (port 5173)
 
 **Usage:**
 ```bash
@@ -45,7 +45,7 @@ scripts\start-all.bat
 
 **After running:**
 - Wait 10-15 seconds for all services to fully start
-- Open http://localhost:5174 in your browser
+- Open http://localhost:5173 in your browser
 - API docs available at http://localhost:8080/docs
 
 ## Stop Scripts
@@ -63,7 +63,7 @@ scripts\stop-all.bat
 ```
 
 **What it does:**
-- Finds processes on ports 5174, 8080, 11434
+- Finds processes on ports 5173, 8080, 11434
 - Terminates them cleanly
 - Confirms when done
 
@@ -75,7 +75,7 @@ The start-all scripts automatically detect and stop existing processes on the re
 ### "Ollama not found"
 Install Ollama first:
 1. Download from https://ollama.com
-2. Run `ollama pull llama3:8b`
+2. Run `ollama pull llama3:latest`
 3. Try again
 
 ### "Permission denied" (Linux/Mac)

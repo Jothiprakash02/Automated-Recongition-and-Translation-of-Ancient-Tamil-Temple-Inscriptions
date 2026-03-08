@@ -18,7 +18,7 @@ taskkill /F /IM node.exe /T 2>nulvalidates them with live market data, optimizes
 | **M2 — AiMarketResearch** | Fetches demand score, competition, keywords, supplier cost, LLM strategy |
 | **M3 — ProfitOptimizer** | 7-step MPI engine: selling price, margin, inventory, monthly profit |
 | **M4 — BusinessStrategy** | AI-generated launch strategy, positioning, and risk assessment (Ollama) |
-| **AiAssistant** | Gemini-powered chat assistant — context-aware answers for every page |
+| **AiAssistant** | Ollama-powered chat assistant — context-aware answers for every page |
 | **ContentGenerator** | SEO content, hashtags, and platform posts for Instagram / Twitter / Facebook |
 
 ---
@@ -72,13 +72,13 @@ npm run dev
 | POST | `/profile` | Validate seller profile (M1) |
 | POST | `/analyze-product` | Analyze a specific product (M2) |
 | POST | `/strategy` | Generate AI business strategy (M4) |
-| POST | `/chat` | Chat with Gemini AI assistant |
+| POST | `/chat` | Chat with Ollama AI assistant |
 | POST | `/generate-content` | Generate SEO content & social posts |
 | GET/PUT | `/settings` | Read or update platform settings |
 | GET | `/history` | Past analysis records |
 | GET | `/health` | Health check |
 
-Interactive docs: **http://localhost:8080/docs**
+Interactive docs: **http://localhost:8080/docs** (Swagger UI)
 
 ---
 
@@ -92,9 +92,8 @@ cp .env.example .env
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `GEMINI_API_KEY` | Optional | Gemini chat assistant — get free key at [aistudio.google.com](https://aistudio.google.com/app/apikey) |
 | `OLLAMA_BASE_URL` | Optional | Ollama LLM endpoint (default: `http://localhost:11434`) |
-| `OLLAMA_MODEL` | Optional | Ollama model to use (default: `llama3:8b`) |
+| `OLLAMA_MODEL` | Optional | Ollama model to use (default: `llama3:latest`) |
 | `SERPAPI_KEY` | Optional | Accurate CPC / search volume (100 free/month) |
 | `REDDIT_CLIENT_ID` | Optional | Reddit trend signals |
 | `REDDIT_CLIENT_SECRET` | Optional | Reddit trend signals |
@@ -163,7 +162,7 @@ python main.py
 **Ollama not reachable**
 ```bash
 ollama serve
-ollama pull llama3:8b
+ollama pull llama3:latest
 ```
 
 **Port conflict** — another process is using 8080 or 5174. Check with:

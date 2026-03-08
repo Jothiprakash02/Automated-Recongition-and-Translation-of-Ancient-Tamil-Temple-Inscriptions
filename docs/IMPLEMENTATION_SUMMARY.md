@@ -158,7 +158,7 @@ Created 6 comprehensive documentation files:
 │  • Keyword research (3-tier cascade)                        │
 │  • Supplier pricing (Alibaba/AliExpress)                    │
 │  • Scoring engine (demand, competition, viability)          │
-│  • LLM strategy (Llama3:8B)                                 │
+│  • LLM strategy (Llama3 via Ollama)                        │
 │  → NO FALLBACK DATA - All real or error                     │
 └─────────────────────────────────────────────────────────────┘
                             ↓
@@ -176,50 +176,64 @@ Created 6 comprehensive documentation files:
 
 ```
 MarketMindAI/
-├── TrendScout/                      # NEW - Module 0
-│   ├── __init__.py
-│   ├── services/
-│   │   ├── __init__.py
-│   │   └── trend_discovery.py       # Core trend scouting logic
-│   ├── routers/
-│   │   ├── __init__.py
-│   │   └── discover.py              # API endpoint
-│   └── schemas/
-│       ├── __init__.py
-│       └── trend_schema.py          # Pydantic models
+├── TrendScout/                      # Module 0 - Trend Discovery
+│   ├── services/trend_discovery.py
+│   ├── routers/discover.py
+│   └── schemas/trend_schema.py
 │
-├── AiMarketResearch/                # Module 2 - ENHANCED
+├── InputConfig/                     # Module 1 - Profile & Validation
+│   ├── services/
+│   │   ├── input_processor.py
+│   │   ├── module2_service.py
+│   │   └── pipeline.py
+│   └── routers/analyze.py
+│
+├── AiMarketResearch/                # Module 2 - Market Intelligence
 │   ├── services/
 │   │   ├── data_collection.py       # Real Amazon/Trends data
-│   │   ├── keyword_research.py      # UPDATED - No fallbacks
-│   │   ├── supplier_pricing.py      # UPDATED - No fallbacks
+│   │   ├── keyword_research.py      # 3-tier cascade (no fallbacks)
+│   │   ├── supplier_pricing.py      # Alibaba/AliExpress scraping
 │   │   ├── scoring_engine.py
 │   │   ├── profit_simulation.py
 │   │   └── llm_engine.py
-│   └── routers/
-│       └── analyze.py
+│   └── routers/analyze.py
 │
-├── InputConfig/                     # Module 1
-├── ProfitOptimizer/                 # Module 3
-├── pipeline/                        # Full pipeline
-├── global/                          # Shared config
+├── ProfitOptimizer/                 # Module 3 - Profit Optimization
+│   └── services/optimizer.py
 │
-├── marketmind-ui/                   # React UI - ENHANCED
-│   └── src/
-│       └── App.jsx                  # UPDATED - Added Discover page
+├── BusinessStrategy/                # Module 4 - AI Strategy (Ollama)
+│   └── services/
+│       ├── launch_strategy.py
+│       ├── positioning_engine.py
+│       ├── listing_generator.py
+│       ├── audience_generator.py
+│       ├── ad_strategy.py
+│       └── differentiation_engine.py
 │
-├── main.py                          # UPDATED - Added Module 0 router
-├── requirements.txt                 # UPDATED - Added praw
-├── .env.example                     # UPDATED - All API keys
+├── AiAssistant/                     # Ollama-powered chat assistant
+│   └── services/ollama_service.py
 │
-├── README.md                        # NEW - Complete documentation
-├── QUICKSTART.md                    # NEW - Quick start guide
-├── TESTING.md                       # NEW - Testing guide
-├── DEPLOYMENT.md                    # NEW - Deployment guide
-├── IMPLEMENTATION_SUMMARY.md        # NEW - This file
+├── ContentGenerator/                # SEO content & social media posts
+│   └── services/content_generator.py
 │
-├── setup.sh                         # NEW - Linux/Mac setup
-└── setup.bat                        # NEW - Windows setup
+├── pipeline/                        # Full pipeline orchestration
+│   └── services/full_pipeline.py
+│
+├── global/                          # Shared config, database, settings API
+│   ├── config.py
+│   ├── database.py
+│   └── routers/settings.py
+│
+├── marketmind-ui/                   # React frontend (Vite, port 5173)
+│   └── src/App.jsx
+│
+├── data/                            # SQLite database (git-ignored)
+├── docs/                            # Full documentation suite
+├── scripts/                         # Setup & start/stop automation
+│
+├── main.py                          # FastAPI entry point (port 8080)
+├── requirements.txt
+└── .env / .env.example
 ```
 
 ---
@@ -240,6 +254,10 @@ praw==7.7.1  # Reddit API for trend scouting
 | POST | `/analyze-product` | 2 | Analyze specific product |
 | POST | `/analyze` | 1→2→3 | Full pipeline |
 | POST | `/profile` | 1 | Configure seller profile |
+| POST | `/strategy` | 4 | AI business strategy (Ollama) |
+| POST | `/chat` | AiAssistant | Ollama-powered chat assistant |
+| POST | `/generate-content` | ContentGenerator | SEO content & social posts |
+| GET/PUT | `/settings` | System | Platform settings |
 | GET | `/history` | 2 | Past analyses |
 | GET | `/health` | System | Health check |
 
@@ -322,8 +340,7 @@ npm run dev
 - More accurate than demand score alone
 
 ### 6. Local LLM Strategy
-- Uses Llama3:8B via Ollama
-- No API costs
+- Uses Llama3 via Ollama (local, no API cost)
 - Qualitative insights complement quantitative data
 
 ---
@@ -483,7 +500,7 @@ If you encounter issues:
 
 Before demo:
 - [ ] All dependencies installed
-- [ ] Ollama running with llama3:8b
+- [ ] Ollama running with llama3:latest
 - [ ] Backend starts without errors
 - [ ] Frontend loads correctly
 - [ ] Can discover trends
