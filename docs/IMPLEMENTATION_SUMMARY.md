@@ -52,7 +52,7 @@ I've transformed your existing Product Intelligence Engine into **MarketMind AI*
 
 ### 3. Enhanced React UI
 
-**Location**: `commerceos-ui/src/App.jsx`
+**Location**: `marketmind-ui/src/App.jsx`
 
 **New Features**:
 - 🆕 **Discover Page** - Full trend scouting interface
@@ -204,7 +204,7 @@ MarketMindAI/
 ├── pipeline/                        # Full pipeline
 ├── global/                          # Shared config
 │
-├── commerceos-ui/                   # React UI - ENHANCED
+├── marketmind-ui/                   # React UI - ENHANCED
 │   └── src/
 │       └── App.jsx                  # UPDATED - Added Discover page
 │
@@ -274,7 +274,7 @@ ollama serve
 python main.py
 
 # 4. Start frontend (separate terminal)
-cd commerceos-ui
+cd marketmind-ui
 npm run dev
 
 # 5. Open browser

@@ -106,7 +106,7 @@ python main.py
 
 **Terminal 3 - Frontend:**
 ```bash
-cd commerceos-ui
+cd marketmind-ui
 npm run dev
 ```
 

@@ -70,7 +70,7 @@ echo.
 
 REM Install UI dependencies
 echo [*] Installing UI dependencies...
-cd commerceos-ui
+cd marketmind-ui
 call npm install
 if errorlevel 1 (
     echo [X] Failed to install UI dependencies
@@ -117,7 +117,7 @@ echo      or
 echo      uvicorn main:app --reload --port 8080
 echo.
 echo   3. Start the frontend (in another terminal):
-echo      cd commerceos-ui
+echo      cd marketmind-ui
 echo      npm run dev
 echo.
 echo   4. Open your browser:

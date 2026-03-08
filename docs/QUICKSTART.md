@@ -41,7 +41,7 @@ python main.py
 
 **Terminal 2 - Frontend:**
 ```bash
-cd commerceos-ui
+cd marketmind-ui
 npm run dev
 ```
 

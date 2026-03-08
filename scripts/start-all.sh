@@ -62,12 +62,12 @@ echo ""
 
 # Start Frontend in background
 echo "[3/3] Starting Frontend (React)..."
-if check_port 5174; then
-    echo "⚠ Port 5174 already in use. Stopping existing process..."
-    kill $(lsof -t -i:5174) 2>/dev/null || true
+if check_port 5173; then
+    echo "⚠ Port 5173 already in use. Stopping existing process..."
+    kill $(lsof -t -i:5173) 2>/dev/null || true
     sleep 2
 fi
-cd commerceos-ui
+cd marketmind-ui
 nohup npm run dev > /tmp/marketmind-frontend.log 2>&1 &
 FRONTEND_PID=$!
 cd ..

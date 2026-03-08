@@ -56,7 +56,7 @@ ollama serve
 python main.py
 
 # Terminal 3 — Frontend
-cd commerceos-ui
+cd marketmind-ui
 npm run dev
 ```
 
@@ -121,7 +121,7 @@ MarketMind AI/
 ├── pipeline/                # Full pipeline orchestration
 ├── global/                  # Shared config, database, settings API
 │
-├── commerceos-ui/           # React frontend (Vite, port 5173)
+├── marketmind-ui/           # React frontend (Vite, port 5173)
 ├── data/                    # SQLite database (git-ignored)
 ├── docs/                    # Extended documentation
 └── scripts/                 # Setup & start/stop automation

@@ -59,7 +59,7 @@ echo ""
 
 # Install UI dependencies
 echo "→ Installing UI dependencies..."
-cd commerceos-ui
+cd marketmind-ui
 npm install
 cd ..
 echo "✓ UI dependencies installed"

@@ -80,7 +80,7 @@ services:
 
   frontend:
     build:
-      context: ./commerceos-ui
+      context: ./marketmind-ui
       dockerfile: Dockerfile
     ports:
       - "80:80"
@@ -96,7 +96,7 @@ volumes:
 ### Frontend Dockerfile
 
 ```dockerfile
-# commerceos-ui/Dockerfile
+# marketmind-ui/Dockerfile
 FROM node:18-alpine AS builder
 
 WORKDIR /app
@@ -115,7 +115,7 @@ CMD ["nginx", "-g", "daemon off;"]
 ### Nginx Configuration
 
 ```nginx
-# commerceos-ui/nginx.conf
+# marketmind-ui/nginx.conf
 server {
     listen 80;
     server_name _;
@@ -273,7 +273,7 @@ cp .env.example .env
 nano .env
 
 # Build frontend
-cd commerceos-ui
+cd marketmind-ui
 npm install
 npm run build
 cd ..
@@ -294,7 +294,7 @@ server {
     }
 
     location / {
-        root /home/ubuntu/marketmind-ai/commerceos-ui/dist;
+        root /home/ubuntu/marketmind-ai/marketmind-ui/dist;
         try_files \$uri \$uri/ /index.html;
     }
 }

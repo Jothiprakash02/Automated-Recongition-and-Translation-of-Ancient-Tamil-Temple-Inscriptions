@@ -43,9 +43,9 @@ echo.
 
 REM Start Frontend in background
 echo [3/3] Starting Frontend (React)...
-start "MarketMind Frontend" cmd /k "cd commerceos-ui && npm run dev"
+start "MarketMind Frontend" cmd /k "cd marketmind-ui && npm run dev"
 timeout /t 5 /nobreak >nul
-echo [+] Frontend starting on port 5174
+echo [+] Frontend starting on port 5173
 echo.
 
 echo ================================================================
