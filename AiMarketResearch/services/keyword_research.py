@@ -382,10 +382,8 @@ def get_keyword_data(keyword: str, country: str = "India") -> dict:
         log.info("Keyword data from SERP scrape: vol=%d cpc=%.3f", data["monthly_search_volume"], data["cpc"])
         return data
     except Exception as exc:
-        log.warning("All keyword tiers failed (%s). Using minimal defaults.", exc)
-        return {
-            "monthly_search_volume": 5000,
-            "cpc": 0.35,
-            "competition": "MEDIUM",
-            "source": "default_fallback",
-        }
+        log.error("All keyword research tiers failed (%s). Cannot proceed without real data.", exc)
+        raise RuntimeError(
+            "Keyword research failed across all tiers (Google Ads API, SerpAPI, SERP scraping). "
+            "Please check your API credentials or network connection."
+        ) from exc

@@ -1,0 +1,1 @@
+# Trend Scout schemas

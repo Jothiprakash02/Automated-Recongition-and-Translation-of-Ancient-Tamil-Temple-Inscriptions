@@ -362,10 +362,11 @@ def get_supplier_cost(
             fob_usd = _tier3_formula(product, rp, country)
             source = "category_formula"
         else:
-            # Absolute last resort — industry average 28% of a $10 retail baseline
-            fob_usd = 2.80
-            source = "default_fallback"
-            log.warning("No retail price provided and all tiers failed. Using minimum fallback.")
+            log.error("No retail price provided and all supplier tiers failed. Cannot proceed.")
+            raise RuntimeError(
+                "Supplier cost lookup failed across all tiers (Alibaba, AliExpress, formula). "
+                "Please provide a retail_price parameter or check network connectivity."
+            )
 
     landed = _fob_to_landed(fob_usd, product, country)
 

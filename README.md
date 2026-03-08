@@ -1,216 +1,162 @@
-# Product & Market Intelligence Engine
-### Module 2 — Pre-Launch Decision System
+﻿# MarketMind AI
 
-> Combines Google Trends · Amazon scraping · Mathematical scoring · Profit simulation · LLM strategy (Llama3:8B)
+**Autonomous Product Discovery & Launch Intelligence**
+
+> Zero static data. Zero fallbacks. 100% real market signals.
 
 ---
 
-## Architecture
+## Overview
 
-```
-User Input (POST /analyze-product)
-           ↓
-  Data Collection Layer
-  ├── Google Trends (pytrends)
-  ├── Amazon Scraping (requests + BS4)
-  └── Static CPC Table
+MarketMind AI is a full-stack commerce intelligence platform that discovers trending product opportunities, validates them with live market data, and optimizes pricing and profit margins — all in a single pipeline.
 
-           ↓
-  Feature Engineering / Scoring Engine
-  ├── Demand Score     (0–100)
-  ├── Competition Score (0–100)
-  └── Viability Score
-
-           ↓
-  Profit Simulation Engine
-  ├── Conservative scenario
-  ├── Expected scenario
-  └── Aggressive scenario
-
-           ↓
-  LLM Strategy Engine (Llama3:8B via Ollama)
-  └── Risk · Positioning · Recommendation · Entry advice
-
-           ↓
-  SQLite (persist history)
-
-           ↓
-  Final JSON Response
-```
+| Module | Role |
+|--------|------|
+| **M0 — TrendScout** | Scans Google Trends, Amazon Movers & Shakers, Reddit for emerging opportunities |
+| **M1 — InputConfig** | Validates seller profile: budget, risk level, experience, country |
+| **M2 — AiMarketResearch** | Fetches demand score, competition, keywords, supplier cost, LLM strategy |
+| **M3 — ProfitOptimizer** | 7-step MPI engine: selling price, margin, inventory, monthly profit |
 
 ---
 
 ## Quick Start
 
-### 1. Prerequisites
+### Automatic (recommended)
 
 ```bash
-# Python 3.10+
-python --version
+# Windows
+scripts\start-all.bat
 
-# Ollama — install from https://ollama.com
-ollama pull llama3:8b
-ollama serve          # keep this running in a separate terminal
+# Linux / macOS
+./scripts/start-all.sh
 ```
 
-### 2. Install dependencies
+Wait 10–15 seconds, then open **http://localhost:5174**
 
 ```bash
-cd d:\AIDev
-pip install -r requirements.txt
+# Stop all services
+scripts\stop-all.bat        # Windows
+./scripts/stop-all.sh       # Linux / macOS
 ```
 
-### 3. Run the server
+### Manual
 
 ```bash
-uvicorn main:app --reload --port 8000
-```
+# First-time setup
+./scripts/setup.sh          # Linux / macOS
+scripts\setup.bat           # Windows
 
-### 4. Open interactive docs
+# Terminal 1 — LLM
+ollama serve
 
-```
-http://localhost:8000/docs
+# Terminal 2 — Backend
+python main.py
+
+# Terminal 3 — Frontend
+cd commerceos-ui
+npm run dev
 ```
 
 ---
 
-## API Reference
+## API Endpoints
 
-### POST `/analyze-product`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/discover-trends` | Discover emerging product opportunities |
+| POST | `/analyze` | Full pipeline (M1 + M2 + M3) |
+| POST | `/analyze-product` | Analyze a specific product |
+| GET | `/history` | Past analysis records |
+| GET | `/health` | Health check |
 
-**Request body**
-```json
-{
-  "product": "portable blender",
-  "country": "India",
-  "budget": 50000,
-  "platform": "Amazon",
-  "cost_per_unit": 900
-}
-```
-
-**Response (excerpt)**
-```json
-{
-  "demand_score": 72.4,
-  "competition_score": 58.1,
-  "viability_score": 20.1,
-  "confidence_score": 100.0,
-  "suggested_price": 2454.0,
-  "profit_margin": 28.5,
-  "estimated_monthly_profit": 38200.0,
-  "roi_percent": 76.4,
-  "break_even_months": 1.3,
-  "risk_level": "Medium",
-  "viability_label": "Moderate",
-  "profit_scenarios": [ ... ],
-  "risk_explanation": "...",
-  "positioning_strategy": "...",
-  "final_recommendation": "Proceed with controlled launch",
-  "market_entry_advice": "..."
-}
-```
-
-### GET `/history?limit=20`
-Returns the last N analyses stored in SQLite.
-
-### GET `/health`
-Liveness check.
+Interactive docs: **http://localhost:8080/docs**
 
 ---
 
-## Scoring Formulas
+## Configuration
 
-### Demand Score
-```
-(0.35 × trend_avg_norm)
-+ (0.20 × trend_growth_norm)
-+ (0.25 × review_velocity_norm)
-+ (0.10 × cpc_score_norm)
-+ (0.10 × search_volume_norm)
+Copy `.env.example` to `.env` and fill in optional keys:
+
+```bash
+cp .env.example .env
 ```
 
-### Competition Score
-```
-(0.40 × seller_count_norm)
-+ (0.35 × avg_reviews_norm)
-+ (0.25 × sponsored_density_norm)
-```
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `SERPAPI_KEY` | Optional | Accurate CPC / search volume (100 free/month) |
+| `REDDIT_CLIENT_ID` | Optional | Reddit trend data |
+| `REDDIT_CLIENT_SECRET` | Optional | Reddit trend data |
+| `DATABASE_URL` | Auto-set | SQLite path (default: `data/product_intelligence.db`) |
 
-### Viability Score
-```
-(0.60 × demand_score) − (0.40 × competition_score)
-```
-- `> 30` → **Good**
-- `15–30` → **Moderate**
-- `< 15` → **Risky**
-
----
-
-## Profit Simulation
-
-```
-monthly_sales  = demand_score × 8 × scenario_multiplier
-revenue        = price × sales
-cogs           = cost_per_unit × sales
-platform_fee   = revenue × 15%
-ad_spend       = revenue × 10%
-net_profit     = revenue − (cogs + platform_fee + ad_spend)
-roi_pct        = (net_profit / budget) × 100
-break_even     = budget / net_profit
-```
-
-Multipliers: Conservative `0.65` · Expected `1.00` · Aggressive `1.40`
-
----
-
-## LLM Integration (Llama3:8B)
-
-- Scores and financials are passed as structured context.
-- The LLM provides **qualitative interpretation only** — it never recalculates numbers.
-- Output is forced to JSON via system prompt.
-- Falls back to rule-based responses if Ollama is unreachable.
+The system works without any API keys using open scraping.
 
 ---
 
 ## Project Structure
 
 ```
-d:\AIDev\
-├── main.py                     # FastAPI app + startup
-├── config.py                   # All configuration
-├── database.py                 # SQLAlchemy + SQLite schema
-├── models.py                   # Pydantic request/response models
-├── requirements.txt
-├── routers/
-│   └── analyze.py              # /analyze-product + /history endpoints
-├── services/
-│   ├── data_collection.py      # Google Trends + Amazon + CPC
-│   ├── scoring_engine.py       # Demand / Competition / Viability
-│   ├── profit_simulation.py    # 3-scenario profit engine
-│   └── llm_engine.py           # Ollama Llama3:8B integration
-└── utils/
-    └── normalizer.py           # 0-100 normalization helpers
+MarketMind AI/
+├── main.py                  # FastAPI entry point (port 8080)
+├── requirements.txt         # Python dependencies
+├── .env.example             # Environment template
+│
+├── TrendScout/              # M0 — Trend discovery
+├── InputConfig/             # M1 — Seller profile & validation
+├── AiMarketResearch/        # M2 — Market intelligence
+├── ProfitOptimizer/         # M3 — Profit optimization
+├── BusinessStrategy/        # M4 — AI strategy (LLM layer)
+├── pipeline/                # Full pipeline orchestration
+├── global/                  # Shared config, database, utilities
+│
+├── commerceos-ui/           # React frontend (Vite, port 5174)
+├── data/                    # SQLite database (git-ignored)
+├── docs/                    # Extended documentation
+└── scripts/                 # Setup & start/stop automation
 ```
 
 ---
 
-## Environment Variables
+## Documentation
 
-| Variable | Default | Description |
-|---|---|---|
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
-| `OLLAMA_MODEL` | `llama3:8b` | Model to use |
-| `OLLAMA_TIMEOUT` | `120` | Request timeout (seconds) |
-| `DATABASE_URL` | `sqlite:///./product_intelligence.db` | DB connection string |
+Full documentation lives in [`docs/`](docs/):
+
+- [`README.md`](docs/README.md) — Architecture deep-dive
+- [`QUICKSTART.md`](docs/QUICKSTART.md) — 5-minute setup guide
+- [`TESTING.md`](docs/TESTING.md) — 14 test categories with curl examples
+- [`API_EXAMPLES.md`](docs/API_EXAMPLES.md) — curl / Python / JS samples
+- [`DEPLOYMENT.md`](docs/DEPLOYMENT.md) — Docker, VPS, cloud options
+- [`IMPLEMENTATION_SUMMARY.md`](docs/IMPLEMENTATION_SUMMARY.md) — What was built
 
 ---
 
-## Production Upgrade Path
+## Service Ports
 
-- Replace SQLite with PostgreSQL (`DATABASE_URL` env var)
-- Integrate Amazon SP-API for real product data
-- Add Google Ads API for live CPC
-- Add time-series forecasting (Prophet / ARIMA) for demand projection
-- ML-based demand prediction model
-- Rate limiting + API key authentication
+| Service | Port |
+|---------|------|
+| Frontend (Vite) | 5174 |
+| Backend (FastAPI) | 8080 |
+| Ollama (LLM) | 11434 |
+
+---
+
+## Troubleshooting
+
+**API OFFLINE in UI**
+```bash
+python main.py
+```
+
+**Ollama not reachable**
+```bash
+ollama serve
+ollama pull llama3:8b
+```
+
+**Port conflict** — another process is using 8080 or 5174. Check with:
+```bash
+netstat -ano | findstr :8080
+```
+
+---
+
+*Built for rapid validation. Designed for production. Powered by real data.*

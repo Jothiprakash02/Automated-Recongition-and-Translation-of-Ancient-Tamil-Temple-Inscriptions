@@ -23,6 +23,11 @@ google-ads==24.1.0          # pip install google-ads
                             # GOOGLE_ADS_REFRESH_TOKEN, GOOGLE_ADS_LOGIN_CUSTOMER_ID
                             # OR: place google-ads.yaml in project root
 
+# ── Reddit API (for trend scouting) ────────────────────────────────────────────
+praw==7.7.1                 # Python Reddit API Wrapper
+                            # Requires env vars: REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET,
+                            # REDDIT_USER_AGENT (optional)
+
 # ── Exchange rates (live USD→local for supplier cost) ─────────────────────────
 # Uses https://open.er-api.com/v6/latest/USD (free, no key needed)
 
@@ -31,3 +36,4 @@ aiofiles>=23.2.1            # required by FastAPI StaticFiles mount
 
 # ── Utilities ────────────────────────────────
 python-dotenv==1.0.1        # load .env file for API keys
+colorama==0.4.6             # colored terminal output for test script

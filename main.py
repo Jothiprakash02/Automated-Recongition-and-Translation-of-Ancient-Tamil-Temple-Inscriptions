@@ -35,6 +35,7 @@ from database import init_db
 from routers.analyze import router as analyze_router
 from InputConfig.routers.analyze import router as input_router
 from pipeline.routers.analyze import router as pipeline_router
+from TrendScout.routers.discover import router as trend_router
 
 # ─────────────────────────────────────────────
 #  Logging
@@ -49,15 +50,16 @@ logging.basicConfig(
 #  App
 # ─────────────────────────────────────────────
 app = FastAPI(
-    title="CommerceOS AI — Market Intelligence Engine",
+    title="MarketMind AI — Autonomous Product Discovery & Launch Intelligence",
     description=(
         "End-to-end AI market research platform for e-commerce sellers. "
+        "Module 0: Global Trend Scouting Engine (NEW). "
         "Module 1: Input configuration & pipeline orchestration. "
         "Module 2: Real-time market signals, scoring, profit simulation & LLM strategy. "
         "Module 3: Demand-Based Profit Optimization Engine."
     ),
-    version="3.0.0",
-    contact={"name": "CommerceOS AI — Hackathon Build"},
+    version="4.0.0",
+    contact={"name": "MarketMind AI — Hackathon Build"},
 )
 
 # ─────────────────────────────────────────────
@@ -73,9 +75,10 @@ app.add_middleware(
 # ─────────────────────────────────────────────
 #  Routes
 # ─────────────────────────────────────────────
-app.include_router(pipeline_router, tags=["Full Pipeline"])            # POST /analyze
-app.include_router(input_router,   tags=["Module 1 — Input Config"])   # POST /profile
-app.include_router(analyze_router, tags=["Module 2 — Intelligence"])   # POST /analyze-product
+app.include_router(trend_router,    tags=["Module 0 — Trend Scouting"])  # POST /discover-trends
+app.include_router(pipeline_router, tags=["Full Pipeline"])              # POST /analyze
+app.include_router(input_router,    tags=["Module 1 — Input Config"])    # POST /profile
+app.include_router(analyze_router,  tags=["Module 2 — Intelligence"])    # POST /analyze-product
 
 # ─────────────────────────────────────────────
 #  Frontend
@@ -125,4 +128,4 @@ async def health():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)

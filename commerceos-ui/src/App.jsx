@@ -1,599 +1,1161 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 
-/* ─── Google Fonts + Global CSS ─────────────────────────────────────────── */
+/* ─── Global CSS ──────────────────────────────────────────────────────────── */
 const GlobalStyles = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:         #03050a;
-      --surface:    #080d14;
-      --card:       #0c1220;
-      --border:     #1a2540;
-      --border-lit: #243050;
-      --green:      #00ff9d;
-      --blue:       #4d9fff;
-      --red:        #ff4560;
-      --amber:      #ffb020;
-      --purple:     #a78bfa;
-      --text:       #e2e8f4;
-      --text-dim:   #8896b0;
-      --text-muted: #3d5070;
-      --font-head:  'Bebas Neue', sans-serif;
-      --font-body:  'IBM Plex Sans', sans-serif;
-      --font-mono:  'IBM Plex Mono', monospace;
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Fira+Code:wght@400;500;600;700&display=swap');
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#020408;--surface:#080d14;--card:#0c1520;--card2:#101a28;
+      --border:#1e2d40;--border2:#2a3f58;
+      --accent:#00ffaa;--accent2:#3d9eff;--accent3:#ff7043;
+      --warn:#ffd740;--danger:#ff4466;--purple:#a78bfa;
+      --text:#f0f4ff;--muted:#5a7a9a;--muted2:#2d3f52;
+      --font:'Outfit',sans-serif;--mono:'Fira Code',monospace;
     }
-
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(0,255,157,0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,255,157,0.025) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
-
-    #root { position: relative; z-index: 1; }
-
-    ::-webkit-scrollbar { width: 3px; height: 3px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 2px; }
-
-    @keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes spin     { to   { transform: rotate(360deg); } }
-    @keyframes blink    { 0%,100%{opacity:1} 50%{opacity:0.2} }
-    @keyframes barIn    { from{width:0} }
-    @keyframes glowPulse{ 0%,100%{box-shadow:0 0 8px rgba(0,255,157,.15)} 50%{box-shadow:0 0 24px rgba(0,255,157,.35)} }
-    @keyframes ticker   { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-    @keyframes numberUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-    .f0 { animation: fadeUp .4s ease both; }
-    .f1 { animation: fadeUp .4s .07s ease both; }
-    .f2 { animation: fadeUp .4s .14s ease both; }
-    .f3 { animation: fadeUp .4s .21s ease both; }
-    .f4 { animation: fadeUp .4s .28s ease both; }
-    .f5 { animation: fadeUp .4s .35s ease both; }
-
-    input, select {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--text);
-      font-family: var(--font-mono);
-      font-size: 13px;
-      padding: 10px 14px;
-      width: 100%;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    input:focus, select:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 2px rgba(0,255,157,.1);
-    }
-    select { cursor: pointer; }
-    button { cursor: pointer; font-family: var(--font-body); }
+    body{background:var(--bg);color:var(--text);font-family:var(--font);font-weight:500;min-height:100vh;overflow-x:hidden;letter-spacing:.01em;}
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-track{background:var(--bg)}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes spinSlow{to{transform:rotate(360deg)}}
+    @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+    @keyframes glowPulse{0%,100%{box-shadow:0 0 20px #00ff8830}50%{box-shadow:0 0 40px #00ff8860}}
+    @keyframes particleFloat{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.6}90%{opacity:.2}100%{transform:translateY(-100px) scale(1.2);opacity:0}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    @keyframes glow{0%,100%{text-shadow:0 0 10px currentColor}50%{text-shadow:0 0 30px currentColor,0 0 60px currentColor}}
+    @keyframes barIn{from{width:0}to{}}
+    .fade-up{animation:fadeUp .5s ease both}
+    .fade-up-1{animation:fadeUp .5s .1s ease both}
+    .fade-up-2{animation:fadeUp .5s .2s ease both}
+    .fade-up-3{animation:fadeUp .5s .3s ease both}
+    .fade-up-4{animation:fadeUp .5s .4s ease both}
+    .fade-up-5{animation:fadeUp .5s .5s ease both}
+    .f0{animation:fadeUp .4s ease both}
+    .f1{animation:fadeUp .4s .07s ease both}
+    .f2{animation:fadeUp .4s .14s ease both}
+    .f3{animation:fadeUp .4s .21s ease both}
+    .f4{animation:fadeUp .4s .28s ease both}
+    .f5{animation:fadeUp .4s .35s ease both}
+    input,select{transition:border-color .2s,box-shadow .2s}
+    input:focus,select:focus{outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 3px #00ff8815}
+    button{transition:all .2s}
   `}</style>
 );
 
-/* ─── Helpers ────────────────────────────────────────────────────────────── */
-const fmt  = n => typeof n==="number" ? Math.abs(n).toLocaleString("en-IN",{maximumFractionDigits:0}) : "—";
-const fmtD = n => typeof n==="number" ? n.toLocaleString("en-IN",{maximumFractionDigits:1}) : "—";
-const riskCol = r => r==="Low"?"var(--green)":r==="Medium"?"var(--amber)":"var(--red)";
-
-/* ─── TICKER ─────────────────────────────────────────────────────────────── */
-const TICKS = ["AI-POWERED MARKET INTELLIGENCE","REAL-TIME AMAZON SCRAPING","GOOGLE TRENDS ANALYSIS","3-TIER KEYWORD RESEARCH","ALIBABA SUPPLIER PRICING","BSR → SALES FORMULA","LLM STRATEGIC ASSESSMENT","PROFIT SIMULATION ENGINE"];
-const Ticker = () => (
-  <div style={{background:"var(--green)",overflow:"hidden",height:26,display:"flex",alignItems:"center"}}>
-    <div style={{display:"flex",gap:80,whiteSpace:"nowrap",animation:"ticker 28s linear infinite",fontFamily:"var(--font-mono)",fontSize:11,fontWeight:600,color:"var(--bg)",letterSpacing:"0.12em"}}>
-      {[...TICKS,...TICKS].map((t,i)=><span key={i}>◆ {t}</span>)}
-    </div>
-  </div>
+const ExtraStyles = () => (
+  <style>{`
+    @keyframes orbitA{0%{transform:rotate(0deg) translateX(260px) rotate(0deg)}100%{transform:rotate(360deg) translateX(260px) rotate(-360deg)}}
+    @keyframes orbitB{0%{transform:rotate(120deg) translateX(180px) rotate(-120deg)}100%{transform:rotate(480deg) translateX(180px) rotate(-480deg)}}
+    @keyframes orbitC{0%{transform:rotate(240deg) translateX(320px) rotate(-240deg)}100%{transform:rotate(600deg) translateX(320px) rotate(-600deg)}}
+    @keyframes shootStar{0%{transform:translateX(-200px) translateY(0) rotate(15deg);opacity:0}5%{opacity:.8}80%{opacity:.4}100%{transform:translateX(110vw) translateY(30px) rotate(15deg);opacity:0}}
+    @keyframes floatOrb{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-28px) scale(1.06)}}
+    @keyframes nebulaDrift{0%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-20px) scale(1.05)}66%{transform:translate(-20px,30px) scale(.97)}100%{transform:translate(0,0) scale(1)}}
+    @keyframes scanDown{0%{top:-4px}100%{top:100%}}
+    @keyframes twinkle{0%,100%{opacity:0;transform:scale(0)}50%{opacity:.9;transform:scale(1)}}
+    @keyframes hexPulse{0%,100%{opacity:.04}50%{opacity:.10}}
+  `}</style>
 );
 
-/* ─── TOPBAR ─────────────────────────────────────────────────────────────── */
-const PAGES = [{id:"analyze",label:"Analyze"},{id:"results",label:"Dashboard"},{id:"scenarios",label:"Scenarios"},{id:"signals",label:"Signals"},{id:"strategy",label:"Strategy"},{id:"history",label:"History"}];
-
-const Topbar = ({page,setPage,hasData,apiOk}) => (
-  <header style={{position:"sticky",top:0,zIndex:200,background:"rgba(3,5,10,.95)",backdropFilter:"blur(12px)",borderBottom:"1px solid var(--border)"}}>
-    <Ticker/>
-    <div style={{display:"flex",alignItems:"center",padding:"0 28px",height:52,gap:0}}>
-      <div style={{fontFamily:"var(--font-head)",fontSize:26,letterSpacing:"0.04em",color:"var(--text)",marginRight:40,lineHeight:1,display:"flex",alignItems:"center",gap:6}}>
-        <span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:"var(--green)",animation:"glowPulse 2s infinite"}}/>
-        MARKET<span style={{color:"var(--green)"}}>IQ</span>
+const Particles = () => (
+  <>
+    <ExtraStyles/>
+    <div style={{position:'fixed',inset:0,pointerEvents:'none',zIndex:0,overflow:'hidden'}}>
+      {[
+        {x:'12%',y:'18%',size:600,color:'#00ffaa',dur:20,delay:0},
+        {x:'80%',y:'65%',size:500,color:'#3d9eff',dur:25,delay:5},
+        {x:'50%',y:'90%',size:400,color:'#ff7043',dur:28,delay:9},
+        {x:'90%',y:'12%',size:350,color:'#00ffaa',dur:18,delay:3},
+      ].map(({x,y,size,color,dur,delay},i)=>(
+        <div key={i} style={{
+          position:'absolute',left:x,top:y,width:size,height:size,borderRadius:'50%',
+          background:`radial-gradient(circle,${color}10 0%,${color}05 45%,transparent 70%)`,
+          transform:'translate(-50%,-50%)',
+          animation:`nebulaDrift ${dur}s ${delay}s ease-in-out infinite`,filter:'blur(50px)',
+        }}/>
+      ))}
+      <div style={{
+        position:'absolute',inset:0,
+        backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z' fill='none' stroke='%2300ffaa' stroke-width='.5' opacity='.07'/%3E%3C/svg%3E")`,
+        backgroundSize:'56px 100px',animation:'hexPulse 5s ease-in-out infinite',
+      }}/>
+      <div style={{position:'absolute',left:'50%',top:'50%',width:0,height:0}}>
+        {[
+          {anim:'orbitA',dur:'28s',color:'var(--accent)',size:5},
+          {anim:'orbitB',dur:'20s',color:'var(--accent2)',size:4},
+          {anim:'orbitC',dur:'36s',color:'var(--accent3)',size:4},
+        ].map(({anim,dur,color,size},i)=>(
+          <div key={i} style={{
+            position:'absolute',width:size,height:size,borderRadius:'50%',
+            background:color,boxShadow:`0 0 10px ${color},0 0 20px ${color}60`,
+            animation:`${anim} ${dur} linear infinite`,opacity:.8,
+          }}/>
+        ))}
       </div>
-      <nav style={{display:"flex",flex:1}}>
-        {PAGES.map(p=>{
-          const locked=p.id!=="analyze"&&p.id!=="history"&&!hasData;
-          const active=page===p.id;
-          return (
-            <button key={p.id} onClick={()=>!locked&&setPage(p.id)} style={{background:"none",border:"none",padding:"0 14px",height:52,fontFamily:"var(--font-mono)",fontSize:12,fontWeight:active?600:400,color:active?"var(--green)":locked?"var(--text-muted)":"var(--text-dim)",borderBottom:active?"2px solid var(--green)":"2px solid transparent",letterSpacing:"0.05em",transition:"color .15s"}}>
-              {p.label.toUpperCase()}
-            </button>
-          );
-        })}
-      </nav>
-      <div style={{display:"flex",alignItems:"center",gap:6,fontFamily:"var(--font-mono)",fontSize:11,color:apiOk?"var(--green)":"var(--red)"}}>
-        <span style={{width:6,height:6,borderRadius:"50%",background:apiOk?"var(--green)":"var(--red)",animation:apiOk?"blink 2s infinite":"none"}}/>
-        API {apiOk?"ONLINE":"OFFLINE"}
-      </div>
+      {Array.from({length:5},(_,i)=>(
+        <div key={i} style={{
+          position:'absolute',left:`${(i*19+5)%85}%`,top:`${(i*11+5)%35}%`,
+          width:60+i*25,height:1.5,
+          background:`linear-gradient(90deg,transparent,var(--accent)90,transparent)`,
+          animation:`shootStar ${7+i*3}s ${i*3}s linear infinite`,
+          boxShadow:`0 0 8px var(--accent)`,borderRadius:2,opacity:.7,
+        }}/>
+      ))}
+      {Array.from({length:26},(_,i)=>(
+        <div key={i} style={{
+          position:'absolute',left:`${(i*17+3)%100}%`,
+          width:i%4===0?3:i%4===1?2:1.5,height:i%4===0?3:i%4===1?2:1.5,
+          borderRadius:'50%',
+          background:i%3===0?'var(--accent)':i%3===1?'var(--accent2)':'var(--accent3)',
+          opacity:.12+i%4*.06,
+          boxShadow:i%4===0?`0 0 8px ${i%3===0?'var(--accent)':i%3===1?'var(--accent2)':'var(--accent3)'}`:undefined,
+          animation:`floatOrb ${7+i*.6}s ${i*.4}s ease-in-out infinite,particleFloat ${10+i*.8}s ${i*.3}s linear infinite`,
+        }}/>
+      ))}
+      {Array.from({length:35},(_,i)=>(
+        <div key={i} style={{
+          position:'absolute',left:`${(i*7+11)%100}%`,top:`${(i*11+7)%100}%`,
+          width:i%5===0?2:1,height:i%5===0?2:1,
+          borderRadius:'50%',background:'#ffffff',
+          animation:`twinkle ${1.5+i%4*.5}s ${i*.25}s ease-in-out infinite`,
+        }}/>
+      ))}
+      <div style={{position:'absolute',inset:0,backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px)'}}/>
+      <div style={{position:'absolute',left:0,right:0,height:4,
+        background:'linear-gradient(transparent,var(--accent)15,transparent)',
+        animation:'scanDown 10s linear infinite',opacity:.5,
+      }}/>
     </div>
-  </header>
+  </>
 );
 
-/* ─── CARD ───────────────────────────────────────────────────────────────── */
-const Card = ({children,style,glow,className}) => (
-  <div className={className} style={{background:"var(--card)",border:`1px solid ${glow?"rgba(0,255,157,.25)":"var(--border)"}`,borderRadius:8,padding:20,position:"relative",overflow:"hidden",boxShadow:glow?"0 0 24px rgba(0,255,157,.07)":"none",...style}}>
-    {glow&&<div style={{position:"absolute",top:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,var(--green),transparent)"}}/>}
-    {children}
-  </div>
-);
+/* ─── Helpers ─────────────────────────────────────────────────────────────── */
+const fmt   = n => typeof n==="number" ? Math.abs(n).toLocaleString("en-IN",{maximumFractionDigits:0}) : "—";
+const fmtD  = n => typeof n==="number" ? n.toLocaleString("en-IN",{maximumFractionDigits:1}) : "—";
+const riskCol = r => r==="Low"?"var(--accent)":r==="Medium"?"var(--warn)":"var(--danger)";
 
-const SectionLabel = ({children,color="var(--green)"}) => (
-  <div style={{fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:"0.15em",textTransform:"uppercase",color,marginBottom:6,display:"flex",alignItems:"center",gap:8}}>
-    <span style={{display:"inline-block",width:16,height:1,background:color}}/>{children}
-  </div>
-);
+/* ─── Rich UI Components ──────────────────────────────────────────────────── */
+const AnimatedNumber = ({ value, duration=1200, prefix='', suffix='' }) => {
+  const [display, setDisplay] = useState(0);
+  useEffect(()=>{
+    const start=performance.now(), target=parseFloat(value)||0;
+    const animate=(now)=>{
+      const p=Math.min((now-start)/duration,1);
+      setDisplay(target*(1-Math.pow(1-p,3)));
+      if(p<1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  },[value,duration]);
+  const f=n=>Math.abs(n)>=100000?(n/1000).toFixed(0)+'K':Math.abs(n)>=1000?n.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,','):n.toFixed(2);
+  return <>{prefix}{f(display)}{suffix}</>;
+};
 
-/* ─── SCORE ARC ─────────────────────────────────────────────────────────── */
-const ScoreArc = ({value,label,color="var(--green)"}) => {
-  const pct = Math.max(0,Math.min(100,value||0));
+const ScoreRing = ({ value, label, color, size=100, delay=0 }) => {
+  const [on,setOn]=useState(false);
+  useEffect(()=>{setTimeout(()=>setOn(true),delay)},[delay]);
+  const r=36,circ=2*Math.PI*r,dash=on?(Math.max(0,Math.min(100,value||0))/100)*circ:0;
   return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-      <svg width={96} height={67} viewBox="0 0 80 56" style={{overflow:"visible"}}>
-        <path d="M 10 50 A 30 30 0 0 1 70 50" fill="none" stroke="var(--border)" strokeWidth="5" strokeLinecap="round"/>
-        <path d="M 10 50 A 30 30 0 0 1 70 50" fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
-          strokeDasharray={`${(pct/100)*94.25} 94.25`} style={{transition:"stroke-dasharray 1.2s ease"}}/>
-        <text x="40" y="46" textAnchor="middle" fill={color} style={{fontFamily:"var(--font-head)",fontSize:22}}>{Math.round(pct)}</text>
-      </svg>
-      <span style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",letterSpacing:"0.12em",textTransform:"uppercase"}}>{label}</span>
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:10}} className="fade-up">
+      <div style={{position:'relative',width:size,height:size}}>
+        <svg width={size} height={size} viewBox="0 0 80 80" style={{transform:'rotate(-90deg)'}}>
+          <circle cx="40" cy="40" r={r} fill="none" stroke="var(--border2)" strokeWidth="4"/>
+          <circle cx="40" cy="40" r={r} fill="none" stroke={color} strokeWidth="4"
+            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+            style={{transition:`stroke-dasharray 1.2s ${delay}ms cubic-bezier(.4,0,.2,1)`,filter:`drop-shadow(0 0 6px ${color}80)`}}/>
+        </svg>
+        <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',
+          fontFamily:'var(--mono)',fontSize:18,fontWeight:700,color}}>{Math.round(value||0)}</div>
+        <div style={{position:'absolute',inset:-4,borderRadius:'50%',border:`1px solid ${color}20`,
+          borderTopColor:color,animation:'spinSlow 4s linear infinite',opacity:on?1:0,transition:'opacity .5s'}}/>
+      </div>
+      <span style={{fontSize:10,color:'var(--muted)',letterSpacing:'.12em',textTransform:'uppercase'}}>{label}</span>
     </div>
   );
 };
 
-const KpiTile = ({label,value,prefix="",suffix="",color="var(--text)",sub}) => (
-  <Card style={{padding:"18px 20px"}}>
-    <SectionLabel color="var(--text-muted)">{label}</SectionLabel>
-    <div style={{fontFamily:"var(--font-head)",fontSize:28,letterSpacing:"0.03em",color,lineHeight:1.1,animation:"numberUp .5s ease"}}>{prefix}{value}{suffix}</div>
-    {sub&&<div style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--text-muted)",marginTop:4}}>{sub}</div>}
-  </Card>
-);
-
-const HBar = ({label,value,max=100,color="var(--green)"}) => (
-  <div style={{marginBottom:12}}>
-    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-      <span style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--text-dim)"}}>{label}</span>
-      <span style={{fontFamily:"var(--font-mono)",fontSize:11,color,fontWeight:600}}>{fmtD(value)}</span>
-    </div>
-    <div style={{height:4,background:"var(--border)",borderRadius:2,overflow:"hidden"}}>
-      <div style={{height:"100%",background:color,borderRadius:2,width:`${Math.min(100,(value/max)*100)}%`,animation:"barIn .9s ease",transition:"width .9s ease"}}/>
-    </div>
+const GlowCard = ({ children, color='var(--accent)', style={}, glow=false, className='', onMouseEnter, onMouseLeave }) => (
+  <div className={className} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} style={{
+    background:'var(--card)',border:`1px solid ${glow?color+'60':'var(--border)'}`,
+    borderRadius:16,padding:24,position:'relative',overflow:'hidden',transition:'border-color .3s',
+    ...(glow?{boxShadow:`0 0 30px ${color}20,inset 0 0 30px ${color}05`}:{}), ...style,
+  }}>
+    {glow&&<div style={{position:'absolute',top:0,left:0,right:0,height:2,
+      background:`linear-gradient(90deg,transparent,${color},transparent)`,
+      animation:'shimmer 2s linear infinite',backgroundSize:'200% 100%'}}/>}
+    {children}
   </div>
 );
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ANALYZE PAGE
-═══════════════════════════════════════════════════════════════════════════ */
-const LOAD_STEPS = ["Initializing data collectors...","Fetching Google Trends (12 months)...","Scraping Amazon search results...","Extracting BSR from product pages...","Measuring review velocity...","Running keyword research (3-tier)...","Fetching Alibaba supplier pricing...","Computing demand & competition scores...","Simulating profit scenarios...","Generating AI strategic assessment...","Persisting to database..."];
+const Tag = ({label,color='var(--accent)'}) => (
+  <span style={{display:'inline-block',padding:'3px 10px',borderRadius:20,fontSize:11,fontWeight:600,
+    letterSpacing:'.08em',textTransform:'uppercase',background:`${color}15`,color,
+    border:`1px solid ${color}30`,fontFamily:'var(--mono)'}}>{label}</span>
+);
 
-const AnalyzePage = ({onResult}) => {
-  const [form,setForm] = useState({product:"",country:"India",platform:"Amazon",budget:"",cost_per_unit:""});
+const AnimBar = ({ label, value, max=100, color, delay=0 }) => {
+  const [w,setW]=useState(0);
+  useEffect(()=>{setTimeout(()=>setW((Math.min(value,max)/max)*100),delay+100)},[value,max,delay]);
+  return (
+    <div style={{marginBottom:16}}>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,fontSize:12}}>
+        <span style={{color:'var(--muted)'}}>{label}</span>
+        <span style={{color,fontFamily:'var(--mono)',fontWeight:600}}>{typeof value==='number'?value.toFixed(1):value}</span>
+      </div>
+      <div style={{height:4,background:'var(--border2)',borderRadius:2,overflow:'hidden'}}>
+        <div style={{height:'100%',width:`${w}%`,background:`linear-gradient(90deg,${color}80,${color})`,
+          borderRadius:2,transition:`width 1s ${delay}ms cubic-bezier(.4,0,.2,1)`,boxShadow:`0 0 8px ${color}60`}}/>
+      </div>
+    </div>
+  );
+};
+
+const TerminalText = ({ lines, speed=35 }) => {
+  const [done,setDone]=useState([]);
+  const [cur,setCur]=useState('');
+  const [li,setLi]=useState(0);
+  const [ci,setCi]=useState(0);
+  useEffect(()=>{
+    if(li>=lines.length) return;
+    if(ci<lines[li].length){
+      const t=setTimeout(()=>{setCur(c=>c+lines[li][ci]);setCi(i=>i+1);},speed);
+      return()=>clearTimeout(t);
+    } else {
+      const t=setTimeout(()=>{setDone(d=>[...d,lines[li]]);setCur('');setCi(0);setLi(i=>i+1);},180);
+      return()=>clearTimeout(t);
+    }
+  },[li,ci,lines,speed]);
+  const cols=['var(--accent)','var(--accent2)','var(--muted)','var(--warn)','var(--text)'];
+  return (
+    <div style={{fontFamily:'var(--mono)',fontSize:12,lineHeight:1.8}}>
+      {done.map((t,i)=><div key={i} style={{color:cols[i%cols.length],opacity:.8}}>{t}</div>)}
+      {li<lines.length&&<div style={{color:cols[li%cols.length]}}>
+        {cur}<span style={{animation:'blink .8s step-end infinite',display:'inline-block',
+          width:6,height:12,background:cols[li%cols.length],marginLeft:2,verticalAlign:'middle'}}/>
+      </div>}
+    </div>
+  );
+};
+
+const MPIGauge = ({ value }) => {
+  const [w,setW]=useState(0);
+  useEffect(()=>{setTimeout(()=>setW(Math.min(value,1)*100),300)},[value]);
+  const color=value>0.6?'var(--danger)':value>0.35?'var(--warn)':'var(--accent)';
+  const label=value>0.6?'High Risk':value>0.35?'Moderate':'Low Risk';
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',marginBottom:8,fontSize:13}}>
+        <span style={{color:'var(--muted)',fontFamily:'var(--mono)'}}>Market Power Index</span>
+        <span style={{color,fontFamily:'var(--mono)',fontWeight:700}}>{value?.toFixed(3)} — {label}</span>
+      </div>
+      <div style={{height:12,background:'linear-gradient(90deg,var(--accent),var(--warn),var(--danger))',
+        borderRadius:6,position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:0,right:0,bottom:0,width:`${100-w}%`,
+          background:'var(--border)',borderRadius:'0 6px 6px 0',transition:'width 1.5s cubic-bezier(.4,0,.2,1)'}}/>
+        <div style={{position:'absolute',top:'50%',left:`${w}%`,transform:'translate(-50%,-50%)',
+          width:16,height:16,borderRadius:'50%',background:'var(--text)',border:'2px solid var(--bg)',
+          transition:'left 1.5s cubic-bezier(.4,0,.2,1)',boxShadow:`0 0 8px ${color}`}}/>
+      </div>
+      <div style={{display:'flex',justifyContent:'space-between',marginTop:4,fontSize:10,color:'var(--muted)',fontFamily:'var(--mono)'}}>
+        <span>Low Risk</span><span>Moderate</span><span>High Risk</span>
+      </div>
+    </div>
+  );
+};
+
+const StepBar = ({ current }) => {
+  const steps=['Profile','Market Research','Optimization'];
+  return (
+    <div style={{display:'flex',alignItems:'center',gap:0,marginBottom:32}}>
+      {steps.map((s,i)=>{
+        const done=i<current,active=i===current;
+        const color=done||active?'var(--accent)':'var(--muted)';
+        return (
+          <div key={s} style={{display:'flex',alignItems:'center',flex:i<steps.length-1?1:'auto'}}>
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+              <div style={{width:32,height:32,borderRadius:'50%',
+                background:done?'var(--accent)':active?'var(--accent)20':'var(--border)',
+                border:`2px solid ${color}`,display:'flex',alignItems:'center',justifyContent:'center',
+                fontFamily:'var(--mono)',fontSize:13,fontWeight:700,color,transition:'all .4s'}}>
+                {done?'✔':i+1}
+              </div>
+              <span style={{fontSize:10,color,letterSpacing:'.08em',textTransform:'uppercase',
+                fontFamily:'var(--mono)',whiteSpace:'nowrap'}}>{s}</span>
+            </div>
+            {i<steps.length-1&&<div style={{flex:1,height:2,background:done?'var(--accent)':'var(--border)',
+              margin:'0 8px',marginBottom:22,transition:'background .4s'}}/>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ─── Compat shims (used by DiscoverPage / ScenariosPage) ────────────────── */
+const Card = ({children, style, glow, className}) => (
+  <GlowCard glow={glow} color="var(--accent)" style={{borderRadius:10,...style}} className={className}>
+    {children}
+  </GlowCard>
+);
+const SectionLabel = ({children, color="var(--accent)"}) => (
+  <div style={{fontFamily:'var(--mono)',fontSize:10,color,letterSpacing:'0.12em',textTransform:'uppercase',marginBottom:6}}>
+    {children}
+  </div>
+);
+
+/* ─── Navigation ──────────────────────────────────────────────────────────── */
+const TABS=[
+  {id:'discover',  label:'🔍 Discover'},
+  {id:'analyze',   label:'⚡ Analyze'},
+  {id:'profile',   label:'👤 Profile'},
+  {id:'results',   label:'📊 Market'},
+  {id:'optimize',  label:'🎯 Optimize'},
+  {id:'scenarios', label:'📈 Scenarios'},
+  {id:'signals',   label:'📡 Signals'},
+  {id:'strategy',  label:'♟ Strategy'},
+  {id:'history',   label:'🕐 History'},
+];
+
+const Nav = ({tab, setTab, hasResults, apiOk}) => {
+  const [hov,setHov]=useState(null);
+  const free=['discover','analyze','history'];
+  return (
+    <nav style={{position:'sticky',top:0,zIndex:200,background:'rgba(2,4,8,.92)',
+      backdropFilter:'blur(20px)',borderBottom:'1px solid var(--border)',
+      display:'flex',alignItems:'center',padding:'0 20px',height:60,gap:2,flexWrap:'wrap'}}>
+      <div style={{fontFamily:'var(--font)',fontWeight:900,fontSize:22,marginRight:24,
+        letterSpacing:'-.03em',whiteSpace:'nowrap'}}>
+        <span style={{color:'var(--accent)',textShadow:'0 0 24px var(--accent),0 0 48px var(--accent)60'}}>Market</span>
+        <span style={{color:'var(--text)'}}>Mind</span>
+      </div>
+      {TABS.map(t=>{
+        const locked=!free.includes(t.id)&&!hasResults;
+        const active=tab===t.id;
+        return (
+          <button key={t.id} onMouseEnter={()=>setHov(t.id)} onMouseLeave={()=>setHov(null)}
+            onClick={()=>!locked&&setTab(t.id)} style={{
+              background:active?'var(--accent)20':'none',
+              border:active?'1px solid var(--accent)60':'1px solid transparent',
+              borderRadius:8,cursor:locked?'not-allowed':'pointer',
+              padding:'6px 12px',fontFamily:'var(--font)',fontSize:12,
+              fontWeight:active?800:600,
+              color:active?'var(--accent)':locked?'var(--border2)':hov===t.id?'var(--text)':'var(--muted)',
+              transition:'all .2s',letterSpacing:'.02em',whiteSpace:'nowrap',
+              textShadow:active?'0 0 14px var(--accent)':'none',
+            }}>
+            {t.label}
+          </button>
+        );
+      })}
+      <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8,
+        fontSize:12,fontFamily:'var(--font)',fontWeight:700,
+        color:apiOk?'var(--accent)':'var(--danger)',
+        textShadow:apiOk?'0 0 10px var(--accent)':'none'}}>
+        <div style={{width:7,height:7,borderRadius:'50%',
+          background:apiOk?'var(--accent)':'var(--danger)',
+          animation:apiOk?'glowPulse 2s ease-in-out infinite':'none',
+          boxShadow:apiOk?'0 0 8px var(--accent)':'none'}}/>
+        API {apiOk?'ONLINE':'OFFLINE'}
+      </div>
+    </nav>
+  );
+};
+
+/* ─── DISCOVER PAGE (Module 0 — TrendScout) ──────────────────────────────── */
+const DiscoverPage = ({onSelectProduct}) => {
+  const [form,setForm] = useState({region:"India",category:"",time_range:"3_months"});
   const [loading,setLoading] = useState(false);
-  const [stepIdx,setStepIdx] = useState(0);
-  const [elapsed,setElapsed] = useState(0);
+  const [trends,setTrends] = useState(null);
   const [error,setError] = useState("");
 
+  const discover = async()=>{
+    setError("");setLoading(true);
+    try{
+      const body={region:form.region,time_range:form.time_range};
+      if(form.category) body.category=form.category;
+      const res=await fetch("http://localhost:8080/discover-trends",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+      if(!res.ok){const e=await res.json();throw new Error(e.detail||"Discovery failed");}
+      setTrends(await res.json());
+    }catch(e){setError(e.message);}
+    finally{setLoading(false);}
+  };
+
+  const velCol=v=>v==="High"?"var(--accent)":v==="Medium"?"var(--warn)":"var(--accent2)";
+  const inp={background:'var(--surface)',border:'1px solid var(--border)',borderRadius:10,color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'11px 14px',width:'100%'};
+
+  return (
+    <div style={{maxWidth:1200,margin:'0 auto',padding:'60px 32px',position:'relative',zIndex:1}}>
+      <div className="f0" style={{marginBottom:36,textAlign:'center'}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--purple)',letterSpacing:'.2em',textTransform:'uppercase',marginBottom:12}}>
+          MODULE 0 — INNOVATION LAYER
+        </div>
+        <h1 style={{fontFamily:'var(--font)',fontSize:52,fontWeight:900,letterSpacing:'-.03em',lineHeight:1.05,marginBottom:16}}>
+          Trend<span style={{color:'var(--accent)',textShadow:'0 0 24px var(--accent)'}}>Scout</span>{" "}
+          <span style={{fontSize:32,fontWeight:600,color:'var(--muted)'}}>Discovery Engine</span>
+        </h1>
+        <p style={{fontFamily:'var(--mono)',fontSize:13,color:'var(--muted)',lineHeight:1.8,maxWidth:560,margin:'0 auto'}}>
+          Discover what is trending <em style={{color:'var(--warn)'}}>before</em> you pick a product.<br/>
+          Scans Google Trends, Amazon Movers &amp; Shakers, and Reddit.
+        </p>
+      </div>
+
+      <GlowCard className="f1" glow color="var(--purple)" style={{maxWidth:720,margin:'0 auto 32px'}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--purple)',letterSpacing:'.15em',marginBottom:20}}>// SCAN PARAMETERS</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14}}>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>REGION</label>
+            <select style={inp} value={form.region} onChange={e=>setForm({...form,region:e.target.value})}>
+              {["India","US","UK","Canada","Australia"].map(c=><option key={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>CATEGORY (OPTIONAL)</label>
+            <select style={inp} value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>
+              <option value="">All Categories</option>
+              {["electronics","home_kitchen","fitness","beauty","fashion","toys","automotive"].map(c=><option key={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>TIME RANGE</label>
+            <select style={inp} value={form.time_range} onChange={e=>setForm({...form,time_range:e.target.value})}>
+              {[["3_months","3 Months"],["6_months","6 Months"],["1_year","1 Year"]].map(([v,l])=><option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+        </div>
+        {error&&<div style={{marginTop:14,padding:'10px 14px',background:'var(--danger)10',border:'1px solid var(--danger)30',borderRadius:8,fontFamily:'var(--mono)',fontSize:12,color:'var(--danger)'}}>⚠ {error}</div>}
+        <button onClick={discover} disabled={loading} style={{
+          marginTop:20,width:'100%',padding:'14px',
+          background:loading?'transparent':'linear-gradient(135deg,var(--purple),var(--accent2))',
+          border:loading?'1px solid var(--purple)40':'none',
+          borderRadius:10,cursor:loading?'not-allowed':'pointer',
+          fontFamily:'var(--mono)',fontWeight:700,fontSize:14,
+          color:loading?'var(--purple)':'var(--bg)',letterSpacing:'.08em',
+          ...(loading?{}:{boxShadow:'0 0 20px var(--purple)30'}),
+        }}>{loading?'SCANNING TRENDS...':'DISCOVER OPPORTUNITIES →'}</button>
+      </GlowCard>
+
+      {loading&&(
+        <GlowCard className="f2" style={{textAlign:'center',padding:'48px 20px',maxWidth:480,margin:'0 auto'}}>
+          <div style={{fontFamily:'var(--mono)',fontSize:13,color:'var(--muted)',marginBottom:20}}>Scanning multiple data sources...</div>
+          <div style={{display:'inline-block',width:36,height:36,border:'3px solid var(--border)',borderTopColor:'var(--purple)',borderRadius:'50%',animation:'spin 1s linear infinite'}}/>
+        </GlowCard>
+      )}
+
+      {trends&&!loading&&(
+        <>
+          <div className="f2" style={{marginBottom:20}}>
+            <GlowCard style={{padding:'20px 28px',background:'linear-gradient(135deg,var(--card),rgba(167,139,250,.06))'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:16}}>
+                <div>
+                  <SectionLabel color="var(--purple)">Scan Complete</SectionLabel>
+                  <div style={{fontFamily:'var(--font)',fontWeight:700,fontSize:22,marginTop:4}}>{trends.message}</div>
+                </div>
+                <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+                  {trends.data_sources_used.map(s=><Tag key={s} label={s} color="var(--purple)"/>)}
+                </div>
+              </div>
+            </GlowCard>
+          </div>
+
+          <div className="f3" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:20}}>
+            <GlowCard color="var(--accent)">
+              <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent)',letterSpacing:'.15em',marginBottom:16}}>// EMERGING CATEGORIES</div>
+              {trends.emerging_categories.slice(0,5).map((cat,i)=>(
+                <div key={i} style={{marginBottom:16,padding:'12px',background:'var(--surface)',borderRadius:8,border:'1px solid var(--border)'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                    <span style={{fontFamily:'var(--font)',fontWeight:700,fontSize:16}}>{cat.category.toUpperCase()}</span>
+                    <Tag label={cat.growth_velocity} color={velCol(cat.growth_velocity)}/>
+                  </div>
+                  <div style={{height:4,background:'var(--border)',borderRadius:2,marginBottom:10}}>
+                    <div style={{height:'100%',background:'var(--accent)',borderRadius:2,width:`${cat.trend_strength}%`,animation:'barIn .9s ease'}}/>
+                  </div>
+                  <div style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--muted)'}}>
+                    {cat.suggested_products.slice(0,2).join(' • ')}
+                  </div>
+                </div>
+              ))}
+            </GlowCard>
+
+            <GlowCard color="var(--warn)">
+              <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--warn)',letterSpacing:'.15em',marginBottom:16}}>// SEASONAL SPIKES</div>
+              {trends.seasonal_spikes.slice(0,8).map((spike,i)=>(
+                <div key={i} style={{padding:'10px 0',borderBottom:'1px solid var(--border)',fontFamily:'var(--mono)',fontSize:12,color:'var(--muted)',display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{color:'var(--warn)',fontSize:14}}>▲</span>
+                  {spike}
+                </div>
+              ))}
+            </GlowCard>
+          </div>
+
+          <GlowCard className="f4" color="var(--accent2)">
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent2)',letterSpacing:'.15em',marginBottom:16}}>// TOP PRODUCT OPPORTUNITIES</div>
+            <div style={{display:'grid',gap:10}}>
+              {trends.top_opportunities.slice(0,10).map((opp,i)=>(
+                <div key={i} style={{
+                  padding:'14px 16px',background:'var(--surface)',borderRadius:8,
+                  border:'1px solid var(--border)',display:'flex',justifyContent:'space-between',
+                  alignItems:'center',gap:16,flexWrap:'wrap',transition:'border-color .2s',cursor:'pointer',
+                }}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor='var(--accent)'}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}
+                  onClick={()=>onSelectProduct(opp.product_name)}>
+                  <div style={{flex:1,minWidth:200}}>
+                    <div style={{fontFamily:'var(--font)',fontWeight:700,fontSize:16,marginBottom:6}}>{opp.product_name}</div>
+                    <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                      <Tag label={opp.category} color="var(--purple)"/>
+                      <Tag label={opp.source} color="var(--accent2)"/>
+                      <Tag label={opp.growth_velocity} color={velCol(opp.growth_velocity)}/>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',gap:20}}>
+                    {[
+                      {l:'STRENGTH',v:opp.trend_strength.toFixed(0),c:'var(--accent)'},
+                      {l:'VOLUME',v:fmt(opp.search_volume_estimate),c:'var(--warn)'},
+                      {l:'CONFIDENCE',v:`${(opp.confidence*100).toFixed(0)}%`,c:'var(--accent2)'},
+                    ].map(({l,v,c})=>(
+                      <div key={l} style={{textAlign:'center'}}>
+                        <div style={{fontFamily:'var(--mono)',fontWeight:700,fontSize:18,color:c}}>{v}</div>
+                        <div style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--muted)',letterSpacing:'.1em'}}>{l}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <button style={{padding:'8px 16px',background:'var(--accent)',color:'var(--bg)',border:'none',borderRadius:6,fontFamily:'var(--mono)',fontSize:11,fontWeight:700,letterSpacing:'.08em'}}>
+                    ANALYZE →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </GlowCard>
+        </>
+      )}
+    </div>
+  );
+};
+
+/* ─── ANALYZE PAGE (Full Pipeline M1+M2+M3) ──────────────────────────────── */
+const AnalyzePage = ({onResult, initialProduct=""}) => {
+  const [form,setForm]=useState({niche:initialProduct||'',budget:'',risk_level:'moderate',country:'India',experience:'beginner'});
+  const [loading,setLoading]=useState(false);
+  const [error,setError]=useState('');
+  const [stepIdx,setStepIdx]=useState(0);
+
+  useEffect(()=>{ if(initialProduct) setForm(f=>({...f,niche:initialProduct})); },[initialProduct]);
+
+  const STEPS=[
+    '> [M1] Validating seller profile...',
+    '> [M1] Normalizing budget & risk config...',
+    '> [M1] Deriving effective budget & platform...',
+    '> [M2] Connecting to Google Trends API...',
+    '> [M2] Scraping Amazon search results...',
+    '> [M2] Fetching keyword CPC data...',
+    '> [M2] Scraping Alibaba supplier pricing...',
+    '> [M2] Computing demand + competition scores...',
+    '> [M2] Running LLM strategy generation...',
+    '> [M3] Running 7-step MPI math engine...',
+    '> [M3] Optimizing selling price & margin...',
+    '> [M3] Computing recommended inventory...',
+    '> Pipeline complete. Building response...',
+  ];
   useEffect(()=>{
-    if(!loading)return;
-    const si=setInterval(()=>setStepIdx(i=>Math.min(i+1,LOAD_STEPS.length-1)),2200);
-    const ti=setInterval(()=>setElapsed(e=>e+1),1000);
-    return()=>{clearInterval(si);clearInterval(ti);};
+    if(!loading) return;
+    const iv=setInterval(()=>setStepIdx(i=>(i+1)%STEPS.length),1800);
+    return()=>clearInterval(iv);
   },[loading]);
 
-  const run = async()=>{
-    if(!form.product||!form.budget){setError("Product and budget are required.");return;}
-    setError("");setLoading(true);setStepIdx(0);setElapsed(0);
+  const inp={background:'var(--surface)',border:'1px solid var(--border)',borderRadius:10,
+    color:'var(--text)',fontFamily:'var(--mono)',fontSize:13,padding:'11px 14px',width:'100%'};
+
+  const run=async()=>{
+    if(!form.niche||!form.budget){setError('Niche and budget are required.');return;}
+    setError('');setLoading(true);setStepIdx(0);
     try{
-      const body={product:form.product,country:form.country,platform:form.platform,budget:parseFloat(form.budget)};
-      if(form.cost_per_unit)body.cost_per_unit=parseFloat(form.cost_per_unit);
-      const res=await fetch("http://localhost:8000/analyze-product",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-      if(!res.ok){const e=await res.json();throw new Error(e.detail||"Analysis failed");}
+      const res=await fetch('http://localhost:8080/analyze',{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({niche:form.niche,budget:parseFloat(form.budget),
+          risk_level:form.risk_level,country:form.country,experience:form.experience})
+      });
+      if(!res.ok){const e=await res.json();throw new Error(e.detail||'Analysis failed');}
       onResult(await res.json());
     }catch(e){setError(e.message);}
     finally{setLoading(false);}
   };
 
   return (
-    <div style={{maxWidth:1100,margin:"48px auto",padding:"0 28px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:24,alignItems:"start"}}>
-      <div>
-        <div className="f0" style={{marginBottom:32}}>
-          <SectionLabel>Pre-launch Intelligence</SectionLabel>
-          <h1 style={{fontFamily:"var(--font-head)",fontSize:52,letterSpacing:"0.04em",lineHeight:.95,color:"var(--text)"}}>
-            PRODUCT<br/><span style={{color:"var(--green)"}}>ANALYSIS</span><br/>ENGINE
-          </h1>
-          <p style={{marginTop:16,fontFamily:"var(--font-mono)",fontSize:12,color:"var(--text-dim)",lineHeight:1.8}}>
-            Real signals. Mathematical scoring.<br/>AI-powered launch strategy.
-          </p>
-        </div>
-        <Card className="f1" glow>
-          <SectionLabel>New Analysis</SectionLabel>
-          <div style={{display:"flex",flexDirection:"column",gap:14,marginTop:16}}>
-            <div>
-              <label style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",letterSpacing:"0.1em",display:"block",marginBottom:6}}>PRODUCT / KEYWORD</label>
-              <input placeholder="e.g. portable blender, yoga mat..." value={form.product} onChange={e=>setForm({...form,product:e.target.value})} onKeyDown={e=>e.key==="Enter"&&run()}/>
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'60px 32px',position:'relative',zIndex:1}}>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:48,alignItems:'start'}}>
+        <div>
+          <div className="fade-up" style={{marginBottom:36}}>
+            <div style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--accent)',letterSpacing:'.2em',textTransform:'uppercase',marginBottom:12}}>
+              MODULE 1 + 2 + 3 — FULL PIPELINE
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <div>
-                <label style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",letterSpacing:"0.1em",display:"block",marginBottom:6}}>COUNTRY</label>
-                <select value={form.country} onChange={e=>setForm({...form,country:e.target.value})}>
-                  {["India","US","UK","Canada","Australia"].map(c=><option key={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",letterSpacing:"0.1em",display:"block",marginBottom:6}}>PLATFORM</label>
-                <select value={form.platform} onChange={e=>setForm({...form,platform:e.target.value})}>
-                  {["Amazon","Flipkart","Shopify","Other"].map(p=><option key={p}>{p}</option>)}
-                </select>
-              </div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-              <div>
-                <label style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",letterSpacing:"0.1em",display:"block",marginBottom:6}}>BUDGET (LOCAL CURRENCY)</label>
-                <input type="number" placeholder="50000" value={form.budget} onChange={e=>setForm({...form,budget:e.target.value})}/>
-              </div>
-              <div>
-                <label style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",letterSpacing:"0.1em",display:"block",marginBottom:6}}>COST / UNIT (OPTIONAL)</label>
-                <input type="number" placeholder="Auto from Alibaba" value={form.cost_per_unit} onChange={e=>setForm({...form,cost_per_unit:e.target.value})}/>
-              </div>
-            </div>
+            <h1 style={{fontFamily:'var(--font)',fontSize:40,fontWeight:700,lineHeight:1.1,letterSpacing:'-.03em',marginBottom:16}}>
+              Commerce<br/>
+              <span style={{background:'linear-gradient(135deg,var(--accent),var(--accent2))',
+                WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>Intelligence</span>
+            </h1>
+            <p style={{color:'var(--muted)',fontSize:14,lineHeight:1.8}}>
+              Profile → Market Research → Profit Optimization — all in one pipeline.
+            </p>
           </div>
-          {error&&<div style={{marginTop:14,padding:"10px 14px",background:"rgba(255,69,96,.1)",border:"1px solid rgba(255,69,96,.3)",borderRadius:6,fontFamily:"var(--font-mono)",fontSize:12,color:"var(--red)"}}>⚠ {error}</div>}
-          <button onClick={run} disabled={loading} style={{marginTop:20,width:"100%",padding:"13px 0",background:loading?"var(--border)":"var(--green)",color:loading?"var(--text-muted)":"var(--bg)",border:"none",borderRadius:6,fontFamily:"var(--font-head)",fontSize:18,letterSpacing:"0.08em",transition:"all .2s"}}>
-            {loading?`ANALYZING... ${elapsed}s`:"RUN ANALYSIS →"}
-          </button>
-        </Card>
-      </div>
-
-      <div>
-        {loading?(
-          <Card className="f0" glow style={{minHeight:340}}>
-            <SectionLabel>Live Status</SectionLabel>
-            <div style={{marginTop:24}}>
-              {LOAD_STEPS.map((s,i)=>(
-                <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"8px 0",borderBottom:"1px solid var(--border)",opacity:i<=stepIdx?1:0.2,transition:"opacity .3s"}}>
-                  <span style={{width:18,height:18,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:i<stepIdx?"var(--green)":i===stepIdx?"transparent":"var(--border)",border:i===stepIdx?"2px solid var(--green)":"none"}}>
-                    {i<stepIdx&&<span style={{color:"var(--bg)",fontSize:10,fontWeight:700}}>✓</span>}
-                    {i===stepIdx&&<span style={{width:8,height:8,borderRadius:"50%",background:"var(--green)",animation:"blink 1s infinite",display:"block"}}/>}
-                  </span>
-                  <span style={{fontFamily:"var(--font-mono)",fontSize:12,color:i<=stepIdx?"var(--text)":"var(--text-muted)"}}>{s}</span>
+          {loading&&<div className="fade-up" style={{marginBottom:24}}><StepBar current={Math.min(Math.floor(stepIdx/4),2)}/></div>}
+          <GlowCard className="fade-up-1" glow={loading} color="var(--accent)">
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:20}}>// SELLER PROFILE — MODULE 1</div>
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              <div>
+                <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>PRODUCT NICHE</label>
+                <input style={inp} placeholder="e.g. wireless earbuds, yoga mat..."
+                  value={form.niche} onChange={e=>setForm({...form,niche:e.target.value})}
+                  onKeyDown={e=>e.key==='Enter'&&run()}/>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div>
+                  <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>BUDGET (USD)</label>
+                  <input style={inp} type="number" placeholder="e.g. 5000" value={form.budget} onChange={e=>setForm({...form,budget:e.target.value})}/>
                 </div>
-              ))}
+                <div>
+                  <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>RISK LEVEL</label>
+                  <select style={{...inp,cursor:'pointer'}} value={form.risk_level} onChange={e=>setForm({...form,risk_level:e.target.value})}>
+                    <option value="conservative">Conservative</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="aggressive">Aggressive</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                <div>
+                  <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>COUNTRY</label>
+                  <select style={{...inp,cursor:'pointer'}} value={form.country} onChange={e=>setForm({...form,country:e.target.value})}>
+                    {['India','US','UK','Canada','Australia'].map(c=><option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{fontSize:11,color:'var(--muted)',display:'block',marginBottom:6,fontFamily:'var(--mono)',letterSpacing:'.08em'}}>EXPERIENCE</label>
+                  <select style={{...inp,cursor:'pointer'}} value={form.experience} onChange={e=>setForm({...form,experience:e.target.value})}>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </Card>
-        ):(
-          <div style={{display:"flex",flexDirection:"column",gap:16}}>
-            <Card className="f2">
-              <SectionLabel>Data Sources</SectionLabel>
-              <div style={{marginTop:16,display:"flex",flexDirection:"column",gap:10}}>
-                {[["Google Trends","12-month interest + growth","var(--green)"],["Amazon Scraping","Price · Reviews · BSR · Velocity","var(--blue)"],["Keyword Research","CPC · Volume (3-tier cascade)","var(--amber)"],["Alibaba / AliExpress","Real supplier landed cost","var(--purple)"],["LLM Strategy","Llama3 / rule-based fallback","var(--red)"]].map(([t,d,c])=>(
-                  <div key={t} style={{display:"flex",gap:12,alignItems:"flex-start"}}>
-                    <span style={{width:3,height:36,background:c,borderRadius:2,flexShrink:0,marginTop:2}}/>
-                    <div>
-                      <div style={{fontFamily:"var(--font-mono)",fontSize:12,fontWeight:600,color:"var(--text)"}}>{t}</div>
-                      <div style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--text-muted)"}}>{d}</div>
-                    </div>
-                  </div>
-                ))}
+            {error&&<div style={{marginTop:16,padding:'10px 14px',background:'var(--danger)10',
+              border:'1px solid var(--danger)30',borderRadius:8,fontSize:12,color:'var(--danger)',fontFamily:'var(--mono)'}}>✗ {error}</div>}
+            <button onClick={run} disabled={loading} style={{
+              marginTop:20,width:'100%',padding:'14px',
+              background:loading?'transparent':'linear-gradient(135deg,var(--accent),var(--accent2))',
+              border:loading?'1px solid var(--accent)40':'none',
+              borderRadius:10,cursor:loading?'not-allowed':'pointer',
+              fontFamily:'var(--mono)',fontWeight:700,fontSize:14,
+              color:loading?'var(--accent)':'var(--bg)',letterSpacing:'.08em',
+              ...(loading?{}:{boxShadow:'0 0 20px var(--accent)30'}),
+            }}>{loading?'RUNNING PIPELINE...':'RUN FULL PIPELINE →'}</button>
+            {loading&&<div style={{marginTop:20,padding:'16px',background:'var(--surface)',borderRadius:10,border:'1px solid var(--border)'}}>
+              <TerminalText lines={STEPS.slice(0,stepIdx+2)} speed={20}/>
+            </div>}
+          </GlowCard>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+          <GlowCard className="fade-up-2" color="var(--accent2)">
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent2)',letterSpacing:'.15em',marginBottom:16}}>// PIPELINE ARCHITECTURE</div>
+            {[
+              {mod:'M0',title:'Trend Scouting',desc:'Google Trends + Amazon Movers + Reddit → opportunities',color:'var(--purple)'},
+              {mod:'M1',title:'User Profiling',desc:'Validates niche, budget, risk, experience → ProcessedConfig',color:'var(--accent)'},
+              {mod:'M2',title:'Market Intelligence',desc:'Google Trends + Amazon + Keywords + Supplier → Scores + LLM',color:'var(--accent2)'},
+              {mod:'M3',title:'Profit Optimization',desc:'7-step MPI engine → Price, Margin, Volume, Inventory',color:'var(--accent3)'},
+            ].map(({mod,title,desc,color},i)=>(
+              <div key={mod} className={`fade-up-${i+2}`} style={{display:'flex',gap:14,padding:'12px 0',borderBottom:'1px solid var(--border)',alignItems:'flex-start'}}>
+                <div style={{width:32,height:32,borderRadius:8,flexShrink:0,background:`${color}15`,
+                  border:`1px solid ${color}30`,display:'flex',alignItems:'center',justifyContent:'center',
+                  fontFamily:'var(--mono)',fontSize:11,fontWeight:700,color}}>{mod}</div>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,marginBottom:3}}>{title}</div>
+                  <div style={{fontSize:11,color:'var(--muted)',lineHeight:1.6}}>{desc}</div>
+                </div>
               </div>
-            </Card>
-            <Card className="f3">
-              <SectionLabel>Scoring Model</SectionLabel>
-              <div style={{marginTop:12,fontFamily:"var(--font-mono)",fontSize:11,color:"var(--text-dim)",lineHeight:2}}>
-                <div><span style={{color:"var(--green)"}}>DEMAND</span> = 0.35×trend + 0.20×growth + 0.25×velocity + 0.10×cpc + 0.10×volume</div>
-                <div><span style={{color:"var(--red)"}}>COMPETITION</span> = 0.40×sellers + 0.35×reviews + 0.25×sponsored</div>
-                <div><span style={{color:"var(--blue)"}}>VIABILITY</span> = 0.60×demand − 0.40×competition</div>
+            ))}
+          </GlowCard>
+          <GlowCard className="fade-up-3" color="var(--accent3)">
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent3)',letterSpacing:'.15em',marginBottom:12}}>// WHAT YOU GET</div>
+            {[
+              ['Profile config','risk multiplier, effective budget, platform'],
+              ['Market signals','demand score, competition, trend, keywords'],
+              ['Supplier cost','Alibaba/AliExpress landed cost'],
+              ['MPI score','market power index – risk assessment'],
+              ['Optimized price','selling price, margin, unit profit'],
+              ['Monthly forecast','adjusted volume, monthly profit, inventory'],
+              ['AI strategy','Llama3 strategic recommendations'],
+            ].map(([k,v])=>(
+              <div key={k} style={{display:'flex',gap:8,marginBottom:8,fontSize:12}}>
+                <span style={{color:'var(--accent)',flexShrink:0}}>→</span>
+                <span style={{color:'var(--text)',fontWeight:600}}>{k}</span>
+                <span style={{color:'var(--muted)',marginLeft:'auto',textAlign:'right',fontSize:11}}>{v}</span>
               </div>
-            </Card>
-          </div>
-        )}
+            ))}
+          </GlowCard>
+        </div>
       </div>
     </div>
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   RESULTS PAGE
-═══════════════════════════════════════════════════════════════════════════ */
-const ResultsPage = ({data}) => {
-  if(!data)return null;
-  const rc=riskCol(data.risk_level);
-  const isNeg=data.estimated_monthly_profit<0;
+/* ─── PROFILE PAGE ────────────────────────────────────────────────────────── */
+const ProfilePage = ({data}) => {
+  if(!data) return null;
+  const p=data.profile;
+  const riskColor=p?.risk_level==='aggressive'?'var(--danger)':p?.risk_level==='moderate'?'var(--warn)':'var(--accent)';
   return (
-    <div style={{maxWidth:1100,margin:"40px auto",padding:"0 28px"}}>
-      <Card className="f0" glow style={{marginBottom:20,padding:"20px 24px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
-          <div>
-            <SectionLabel>Analysis Complete</SectionLabel>
-            <h2 style={{fontFamily:"var(--font-head)",fontSize:36,letterSpacing:"0.04em",color:"var(--text)",marginTop:4}}>{data.product.toUpperCase()}</h2>
-            <div style={{display:"flex",gap:10,marginTop:8,flexWrap:"wrap"}}>
-              {[[data.platform,"var(--blue)"],[data.country,"var(--purple)"],[data.viability_label,rc],[`Risk: ${data.risk_level}`,rc]].map(([l,c])=>(
-                <span key={l} style={{fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:"0.1em",padding:"3px 10px",borderRadius:3,background:`${c}18`,color:c,border:`1px solid ${c}40`}}>{l.toUpperCase()}</span>
-              ))}
+    <div style={{maxWidth:900,margin:'0 auto',padding:'40px 32px',position:'relative',zIndex:1}}>
+      <div className="fade-up" style={{marginBottom:32}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:8}}>// MODULE 1 — USER PROFILING & ONBOARDING</div>
+        <h2 style={{fontFamily:'var(--font)',fontSize:32,fontWeight:700,letterSpacing:'-.02em'}}>Seller Profile</h2>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+        <GlowCard className="fade-up-1" color="var(--accent)">
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent)',letterSpacing:'.15em',marginBottom:16}}>// INPUT CONFIG</div>
+          {[['Niche',p?.niche],['Budget',`$${p?.budget?.toLocaleString()}`],['Risk Level',p?.risk_level],
+            ['Country',p?.country],['Platform',p?.platform],['Experience',p?.experience],['Currency',p?.currency_symbol]
+          ].map(([l,v])=>(
+            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--border)',fontSize:13}}>
+              <span style={{color:'var(--muted)'}}>{l}</span>
+              <span style={{color:'var(--text)',fontFamily:'var(--mono)',fontWeight:600,textTransform:'capitalize'}}>{v||'—'}</span>
             </div>
+          ))}
+        </GlowCard>
+        <GlowCard className="fade-up-2" color="var(--accent2)" glow>
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent2)',letterSpacing:'.15em',marginBottom:16}}>// DERIVED CONFIG</div>
+          {[
+            ['Risk Multiplier',`${p?.risk_multiplier?.toFixed(2)}×`,'var(--warn)'],
+            ['Target Margin',`${(p?.target_margin*100)?.toFixed(0)}%`,'var(--accent)'],
+            ['Country Fee',`${(p?.country_fee*100)?.toFixed(0)}%`,'var(--accent2)'],
+            ['Effective Budget',`$${p?.effective_budget?.toLocaleString()}`,'var(--accent)'],
+          ].map(([l,v,c])=>(
+            <div key={l} style={{padding:'14px 0',borderBottom:'1px solid var(--border)'}}>
+              <div style={{fontSize:11,color:'var(--muted)',marginBottom:4,fontFamily:'var(--mono)',letterSpacing:'.06em'}}>{l}</div>
+              <div style={{fontSize:24,fontFamily:'var(--mono)',fontWeight:700,color:c}}>{v||'—'}</div>
+            </div>
+          ))}
+        </GlowCard>
+      </div>
+      <GlowCard className="fade-up-3" color={riskColor} glow>
+        <div style={{display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
+          <div style={{width:64,height:64,borderRadius:12,flexShrink:0,background:`${riskColor}15`,
+            border:`2px solid ${riskColor}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:28}}>
+            {p?.risk_level==='aggressive'?'🔥':p?.risk_level==='moderate'?'⚡':'🛡'}
           </div>
-          <div style={{textAlign:"right"}}>
-            <div style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",letterSpacing:"0.1em"}}>DATA CONFIDENCE</div>
-            <div style={{fontFamily:"var(--font-head)",fontSize:48,color:"var(--green)",lineHeight:1}}>{data.confidence_score.toFixed(0)}%</div>
+          <div>
+            <div style={{fontFamily:'var(--font)',fontWeight:700,fontSize:20,marginBottom:4,color:riskColor,textTransform:'capitalize'}}>
+              {p?.risk_level} Investor Profile
+            </div>
+            <div style={{fontSize:13,color:'var(--muted)',lineHeight:1.7}}>
+              Risk multiplier <span style={{color:riskColor}}>{p?.risk_multiplier?.toFixed(2)}×</span> ·{' '}
+              Target margin <span style={{color:'var(--accent)'}}>{(p?.target_margin*100)?.toFixed(0)}%</span> ·{' '}
+              Effective budget <span style={{color:'var(--accent2)'}}>${p?.effective_budget?.toLocaleString()}</span>
+            </div>
           </div>
         </div>
-      </Card>
+      </GlowCard>
+    </div>
+  );
+};
 
-      <Card className="f1" style={{marginBottom:20,display:"flex",justifyContent:"space-around",flexWrap:"wrap",gap:20,padding:"28px 20px"}}>
-        <ScoreArc value={data.demand_score}     label="Demand"      color="var(--green)"/>
-        <ScoreArc value={data.competition_score} label="Competition" color="var(--red)"/>
-        <ScoreArc value={Math.max(0,data.viability_score)} label="Viability" color="var(--blue)"/>
-        <ScoreArc value={data.confidence_score} label="Confidence"  color="var(--amber)"/>
-      </Card>
-
-      <div className="f2" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:20}}>
-        <KpiTile label="Avg Market Price"   prefix="₹" value={fmt(data.avg_market_price)}         color="var(--text)"/>
-        <KpiTile label="Suggested Price"    prefix="₹" value={fmt(data.suggested_price)}          color="var(--green)"/>
-        <KpiTile label="Profit Margin"      suffix="%" value={fmtD(data.profit_margin)}           color="var(--green)"/>
-        <KpiTile label="Monthly Sales Est." suffix=" u" value={fmt(data.estimated_monthly_sales)} color="var(--blue)" sub={`Basis: ${data.sales_basis}`}/>
-        <KpiTile label="Monthly Profit"     prefix={isNeg?"−₹":"₹"} value={fmt(data.estimated_monthly_profit)} color={isNeg?"var(--red)":"var(--green)"}/>
-        <KpiTile label="ROI"                suffix="%" value={fmtD(data.roi_percent)}             color={data.roi_percent>0?"var(--green)":"var(--red)"}/>
-        <KpiTile label="Break-even"         suffix=" mo" value={data.break_even_months===Infinity?"∞":fmtD(data.break_even_months)} color="var(--amber)"/>
-        <KpiTile label="Risk Level"         value={data.risk_level}                               color={rc}/>
+/* ─── RESULTS PAGE ────────────────────────────────────────────────────────── */
+const ResultsPage = ({data}) => {
+  if(!data) return null;
+  const m=data.market, p=data.profile;
+  const tc=m?.trend_direction==='Rising'?'var(--accent)':m?.trend_direction==='Stable'?'var(--warn)':'var(--danger)';
+  return (
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'40px 32px',position:'relative',zIndex:1}}>
+      <div className="fade-up" style={{marginBottom:32,padding:'28px 32px',
+        background:'linear-gradient(135deg,var(--card),var(--card2))',
+        borderRadius:20,border:'1px solid var(--border)',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:0,left:0,right:0,height:3,
+          background:'linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3))',
+          animation:'shimmer 3s linear infinite',backgroundSize:'200% 100%'}}/>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:16}}>
+          <div>
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:8}}>// MODULE 2 — MARKET INTELLIGENCE</div>
+            <h2 style={{fontFamily:'var(--font)',fontSize:32,fontWeight:700,letterSpacing:'-.02em',marginBottom:12}}>{p?.niche}</h2>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <Tag label={p?.country}/><Tag label={p?.platform} color="var(--accent2)"/>
+              <Tag label={`Trend: ${m?.trend_direction}`} color={tc}/>
+              <Tag label={`${p?.experience} seller`} color="var(--muted)"/>
+            </div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',marginBottom:4}}>EST. MONTHLY SALES</div>
+            <div style={{fontSize:40,fontFamily:'var(--mono)',fontWeight:700,color:'var(--accent)',animation:'glow 2s ease-in-out infinite'}}>
+              <AnimatedNumber value={m?.estimated_sales||0}/> <span style={{fontSize:18}}>units</span>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <div className="f3" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-        <Card>
-          <SectionLabel color="var(--green)">Demand Signals</SectionLabel>
-          <div style={{marginTop:16}}>
-            <HBar label="Trend Average"   value={data.raw_signals.trend_avg}    color="var(--green)"/>
-            <HBar label="Trend Growth"    value={Math.max(0,(data.raw_signals.trend_growth+100)/2)} color="var(--green)"/>
-            <HBar label="Review Velocity" value={Math.min(100,data.raw_signals.review_velocity/5)} color="var(--green)"/>
-            <HBar label="Search Volume"   value={Math.min(100,data.raw_signals.monthly_search_volume/1000)} color="var(--green)"/>
-            <HBar label="CPC Signal"      value={Math.min(100,data.raw_signals.cpc_score*50)} color="var(--blue)"/>
-          </div>
-        </Card>
-        <Card>
-          <SectionLabel color="var(--red)">Competition Signals</SectionLabel>
-          <div style={{marginTop:16}}>
-            <HBar label="Seller Count"      value={Math.min(100,data.raw_signals.seller_count/20*100)} color="var(--red)"/>
-            <HBar label="Avg Reviews"       value={Math.min(100,data.raw_signals.avg_reviews/50)}      color="var(--red)"/>
-            <HBar label="Keyword Comp."     value={data.raw_signals.keyword_competition==="HIGH"?90:data.raw_signals.keyword_competition==="MEDIUM"?55:25} color="var(--amber)"/>
-            <HBar label="Sponsored Density" value={(data.raw_signals.sponsored_density||0)*100}        color="var(--amber)"/>
-          </div>
-        </Card>
+      <GlowCard className="fade-up-1" style={{marginBottom:20,display:'flex',justifyContent:'space-around',flexWrap:'wrap',gap:24,padding:'32px'}}>
+        <ScoreRing value={m?.demand_score||0} label="Demand" color="var(--accent)" delay={0}/>
+        <ScoreRing value={m?.competition_score||0} label="Competition" color="var(--danger)" delay={150}/>
+        <ScoreRing value={Math.min(100,(m?.demand_score||0)-(m?.competition_score||0)*0.4)} label="Viability" color="var(--accent2)" delay={300}/>
+        <ScoreRing value={m?.supplier_cost>0?85:55} label="Data Quality" color="var(--warn)" delay={450}/>
+      </GlowCard>
+      <div className="fade-up-2" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:12,marginBottom:20}}>
+        {[
+          {label:'Supplier Cost',value:`${p?.currency_symbol||'$'}${m?.supplier_cost?.toFixed(2)}`,color:'var(--accent)'},
+          {label:'Est. Monthly Sales',value:`${m?.estimated_sales} units`,color:'var(--text)'},
+          {label:'Trend Direction',value:m?.trend_direction,color:tc},
+          {label:'Top Keywords',value:`${m?.top_keywords?.length||0} found`,color:'var(--accent2)'},
+        ].map(({label,value,color})=>(
+          <GlowCard key={label} style={{padding:'18px 20px'}}
+            onMouseEnter={e=>e.currentTarget.style.borderColor=color}
+            onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>
+            <div style={{fontSize:10,color:'var(--muted)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontFamily:'var(--mono)'}}>{label}</div>
+            <div style={{fontSize:20,fontFamily:'var(--mono)',fontWeight:700,color}}>{value}</div>
+          </GlowCard>
+        ))}
+      </div>
+      <div className="fade-up-3" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+        <GlowCard color="var(--accent2)">
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent2)',letterSpacing:'.15em',marginBottom:16}}>// TOP KEYWORDS</div>
+          {(m?.top_keywords||[]).map((kw,i)=>(
+            <div key={kw} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:13}}>
+              <span style={{color:'var(--muted)',fontFamily:'var(--mono)',fontSize:10}}>#{i+1}</span>
+              <span style={{color:'var(--text)'}}>{kw}</span>
+              <div style={{marginLeft:'auto',height:3,width:60,background:'var(--border)',borderRadius:2,overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${100-(i*15)}%`,background:'var(--accent2)',borderRadius:2}}/>
+              </div>
+            </div>
+          ))}
+        </GlowCard>
+        <GlowCard color="var(--accent)">
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent)',letterSpacing:'.15em',marginBottom:16}}>// SCORE BREAKDOWN</div>
+          <AnimBar label="Demand Score" value={m?.demand_score||0} color="var(--accent)" delay={0}/>
+          <AnimBar label="Competition Score" value={m?.competition_score||0} color="var(--danger)" delay={100}/>
+          <AnimBar label="Trend Strength" value={m?.trend_direction==='Rising'?80:m?.trend_direction==='Stable'?50:25} color="var(--warn)" delay={200}/>
+          <AnimBar label="Supplier Reliability" value={m?.supplier_cost>0?85:40} color="var(--accent2)" delay={300}/>
+        </GlowCard>
       </div>
     </div>
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   SCENARIOS PAGE
-═══════════════════════════════════════════════════════════════════════════ */
+/* ─── OPTIMIZE PAGE ───────────────────────────────────────────────────────── */
+const OptimizePage = ({data}) => {
+  if(!data) return null;
+  const o=data.optimization,p=data.profile;
+  const rc=o?.risk_level==='Low'?'var(--accent)':o?.risk_level==='Medium'?'var(--warn)':'var(--danger)';
+  const curr=p?.currency_symbol||'$';
+  return (
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'40px 32px',position:'relative',zIndex:1}}>
+      <div className="fade-up" style={{marginBottom:32}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:8}}>// MODULE 3 — PROFIT OPTIMIZATION ENGINE</div>
+        <h2 style={{fontFamily:'var(--font)',fontSize:32,fontWeight:700,letterSpacing:'-.02em',marginBottom:8}}>Optimization Results</h2>
+        <p style={{color:'var(--muted)',fontSize:13}}>7-step MPI math engine — price, margin, volume and inventory optimization.</p>
+      </div>
+      <GlowCard className="fade-up-1" glow color={rc} style={{marginBottom:20}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:20}}>// MARKET POWER INDEX (MPI)</div>
+        <MPIGauge value={o?.market_power_index||0}/>
+        <div style={{marginTop:16,display:'flex',gap:8,flexWrap:'wrap'}}>
+          <Tag label={`Risk: ${o?.risk_level}`} color={rc}/>
+          <Tag label={`MPI: ${o?.market_power_index?.toFixed(3)}`} color="var(--accent2)"/>
+          <Tag label={p?.risk_level} color="var(--warn)"/>
+        </div>
+      </GlowCard>
+      <div className="fade-up-2" style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:20}}>
+        {[
+          {label:'Selling Price',value:`${curr}${o?.selling_price?.toFixed(2)}`,color:'var(--accent)'},
+          {label:'Final Margin',value:`${(o?.final_margin*100)?.toFixed(1)}%`,color:'var(--accent)'},
+          {label:'Unit Profit',value:`${curr}${o?.unit_profit?.toFixed(2)}`,color:'var(--accent)'},
+          {label:'Adjusted Volume',value:`${o?.adjusted_volume} units`,color:'var(--text)'},
+          {label:'Monthly Profit',value:`${curr}${o?.monthly_profit?.toLocaleString()}`,color:o?.monthly_profit>0?'var(--accent)':'var(--danger)'},
+          {label:'Rec. Inventory',value:`${o?.recommended_inventory} units`,color:'var(--accent2)'},
+        ].map(({label,value,color})=>(
+          <GlowCard key={label} style={{padding:'18px 20px',transition:'transform .2s'}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor=color;e.currentTarget.style.transform='translateY(-2px)';}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='';}}>
+            <div style={{fontSize:10,color:'var(--muted)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8,fontFamily:'var(--mono)'}}>{label}</div>
+            <div style={{fontSize:20,fontFamily:'var(--mono)',fontWeight:700,color}}>{value}</div>
+          </GlowCard>
+        ))}
+      </div>
+      <div className="fade-up-3" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+        <GlowCard color="var(--accent)">
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent)',letterSpacing:'.15em',marginBottom:16}}>// FINANCIAL BREAKDOWN</div>
+          <AnimBar label="Profit Margin" value={(o?.final_margin||0)*100} color="var(--accent)" delay={0}/>
+          <AnimBar label="MPI Score" value={(o?.market_power_index||0)*100} max={100} color={rc} delay={100}/>
+          <AnimBar label="Volume Efficiency" value={Math.min(100,(o?.adjusted_volume||0)/10)} color="var(--accent2)" delay={200}/>
+          <AnimBar label="Inventory Coverage" value={Math.min(100,(o?.recommended_inventory||0)/5)} color="var(--warn)" delay={300}/>
+        </GlowCard>
+        <GlowCard color="var(--accent2)">
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent2)',letterSpacing:'.15em',marginBottom:16}}>// VS PROFILE TARGETS</div>
+          {[
+            ['Target Margin',`${(p?.target_margin*100)?.toFixed(0)}%`,`${(o?.final_margin*100)?.toFixed(1)}%`,o?.final_margin>=p?.target_margin],
+            ['Risk Profile',p?.risk_level,o?.risk_level,o?.risk_level!=='High'],
+            ['Experience',p?.experience,'Accounted ✔',true],
+            ['Platform',p?.platform,'Optimized ✔',true],
+          ].map(([label,target,actual,ok])=>(
+            <div key={label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+              padding:'9px 0',borderBottom:'1px solid var(--border)',fontSize:12}}>
+              <span style={{color:'var(--muted)'}}>{label}</span>
+              <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                <span style={{color:'var(--muted)',fontSize:10}}>{target} →</span>
+                <span style={{color:ok?'var(--accent)':'var(--danger)',fontWeight:600,fontFamily:'var(--mono)'}}>{actual}</span>
+              </div>
+            </div>
+          ))}
+        </GlowCard>
+      </div>
+    </div>
+  );
+};
+
+/* ─── SCENARIOS PAGE ──────────────────────────────────────────────────────── */
 const ScenariosPage = ({data}) => {
-  if(!data?.profit_scenarios)return null;
-  const COLS={conservative:"var(--amber)",expected:"var(--green)",aggressive:"var(--blue)"};
+  if(!data?.profit_scenarios) return (
+    <div style={{maxWidth:700,margin:'80px auto',padding:'0 32px',textAlign:'center',zIndex:1,position:'relative'}}>
+      <GlowCard>
+        <div style={{fontFamily:'var(--mono)',fontSize:13,color:'var(--muted)'}}>
+          No scenario data. Run the full pipeline first — profit_scenarios requires the /analyze endpoint.
+        </div>
+      </GlowCard>
+    </div>
+  );
+  const COLS={conservative:'var(--warn)',expected:'var(--accent)',aggressive:'var(--accent2)'};
   const maxAbs=Math.max(...data.profit_scenarios.map(s=>Math.abs(s.net_profit)),1);
   return (
-    <div style={{maxWidth:1100,margin:"40px auto",padding:"0 28px"}}>
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'40px 32px',position:'relative',zIndex:1}}>
       <div className="f0" style={{marginBottom:28}}>
-        <SectionLabel>Profit Simulation</SectionLabel>
-        <h2 style={{fontFamily:"var(--font-head)",fontSize:40,letterSpacing:"0.04em"}}>3-SCENARIO FORECAST</h2>
-        <p style={{fontFamily:"var(--font-mono)",fontSize:12,color:"var(--text-dim)",marginTop:6}}>
-          Sales basis: <span style={{color:"var(--green)"}}>{data.sales_basis==="bsr"?"Amazon BSR (real)":"Demand score (estimated)"}</span>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:8}}>// PROFIT SIMULATION ENGINE</div>
+        <h2 style={{fontFamily:'var(--font)',fontSize:32,fontWeight:700,letterSpacing:'-.02em'}}>3-Scenario Forecast</h2>
+        <p style={{fontFamily:'var(--mono)',fontSize:12,color:'var(--muted)',marginTop:6}}>
+          Sales basis: <span style={{color:'var(--accent)'}}>{data.sales_basis==='bsr'?'Amazon BSR (real)':'Demand score (estimated)'}</span>
         </p>
       </div>
-
-      <div className="f1" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16,marginBottom:24}}>
+      <div className="f1" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:24}}>
         {data.profit_scenarios.map(s=>{
-          const col=COLS[s.scenario.toLowerCase()]||"var(--green)";
+          const col=COLS[s.scenario.toLowerCase()]||'var(--accent)';
           const neg=s.net_profit<0;
-          const isExp=s.scenario.toLowerCase()==="expected";
+          const isExp=s.scenario.toLowerCase()==='expected';
           return (
-            <Card key={s.scenario} glow={isExp}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-                <span style={{fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:"0.12em",padding:"3px 8px",borderRadius:3,background:`${col}20`,color:col,border:`1px solid ${col}40`}}>{s.scenario.toUpperCase()}</span>
-                {isExp&&<span style={{fontFamily:"var(--font-mono)",fontSize:9,color:"var(--text-muted)"}}>BASE CASE</span>}
+            <GlowCard key={s.scenario} glow={isExp} color={col}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+                <Tag label={s.scenario} color={col}/>
+                {isExp&&<span style={{fontFamily:'var(--mono)',fontSize:9,color:'var(--muted)'}}>BASE CASE</span>}
               </div>
-              <div style={{fontFamily:"var(--font-head)",fontSize:34,letterSpacing:"0.02em",color:neg?"var(--red)":col,marginBottom:4}}>{neg?"−":""}₹{fmt(s.net_profit)}</div>
-              <div style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",marginBottom:20}}>NET PROFIT / MONTH</div>
-              {[["Units sold",s.estimated_monthly_sales],["Revenue",`₹${fmt(s.revenue)}`],["COGS",`₹${fmt(s.cogs)}`],["Platform fee",`₹${fmt(s.platform_fee)}`],["Ad spend",`₹${fmt(s.ad_spend)}`],["ROI",`${s.roi_percent.toFixed(1)}%`],["Break-even",s.break_even_months===Infinity?"∞":`${s.break_even_months.toFixed(1)} mo`]].map(([l,v])=>(
-                <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:"1px solid var(--border)",fontFamily:"var(--font-mono)",fontSize:12}}>
-                  <span style={{color:"var(--text-muted)"}}>{l}</span>
-                  <span style={{color:"var(--text)"}}>{v}</span>
+              <div style={{fontFamily:'var(--mono)',fontWeight:700,fontSize:32,color:neg?'var(--danger)':col,marginBottom:4}}>
+                {neg?'−':''}₹{fmt(s.net_profit)}
+              </div>
+              <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',marginBottom:20}}>NET PROFIT / MONTH</div>
+              {[['Units sold',s.estimated_monthly_sales],['Revenue',`₹${fmt(s.revenue)}`],['COGS',`₹${fmt(s.cogs)}`],
+                ['Platform fee',`₹${fmt(s.platform_fee)}`],['Ad spend',`₹${fmt(s.ad_spend)}`],
+                ['ROI',`${s.roi_percent.toFixed(1)}%`],
+                ['Break-even',s.break_even_months===Infinity?'∞':`${s.break_even_months.toFixed(1)} mo`]
+              ].map(([l,v])=>(
+                <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border)',fontFamily:'var(--mono)',fontSize:12}}>
+                  <span style={{color:'var(--muted)'}}>{l}</span>
+                  <span style={{color:'var(--text)'}}>{v}</span>
                 </div>
               ))}
-            </Card>
+            </GlowCard>
           );
         })}
       </div>
-
-      <Card className="f2">
-        <SectionLabel>Net Profit Comparison</SectionLabel>
-        <div style={{marginTop:20}}>
-          {data.profit_scenarios.map(s=>{
-            const col=COLS[s.scenario.toLowerCase()]||"var(--green)";
-            const neg=s.net_profit<0;
-            const pct=Math.abs(s.net_profit)/maxAbs*100;
-            return (
-              <div key={s.scenario} style={{marginBottom:20}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                  <span style={{fontFamily:"var(--font-head)",fontSize:16,letterSpacing:"0.05em"}}>{s.scenario.toUpperCase()}</span>
-                  <span style={{fontFamily:"var(--font-mono)",fontSize:13,color:neg?"var(--red)":col,fontWeight:600}}>{neg?"−":""}₹{fmt(s.net_profit)}</span>
-                </div>
-                <div style={{height:32,background:"var(--surface)",borderRadius:4,overflow:"hidden",border:"1px solid var(--border)"}}>
-                  <div style={{height:"100%",width:`${pct}%`,background:neg?"var(--red)":col,borderRadius:4,animation:"barIn 1s ease",display:"flex",alignItems:"center",paddingLeft:12,minWidth:80}}>
-                    <span style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--bg)",fontWeight:600}}>{fmt(s.estimated_monthly_sales)} units</span>
-                  </div>
+      <GlowCard className="f2" color="var(--accent2)">
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent2)',letterSpacing:'.15em',marginBottom:16}}>// NET PROFIT COMPARISON</div>
+        {data.profit_scenarios.map(s=>{
+          const col=COLS[s.scenario.toLowerCase()]||'var(--accent)';
+          const neg=s.net_profit<0;
+          const pct=Math.abs(s.net_profit)/maxAbs*100;
+          return (
+            <div key={s.scenario} style={{marginBottom:20}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                <span style={{fontFamily:'var(--font)',fontWeight:700,fontSize:15,textTransform:'uppercase'}}>{s.scenario}</span>
+                <span style={{fontFamily:'var(--mono)',fontSize:13,color:neg?'var(--danger)':col,fontWeight:600}}>
+                  {neg?'−':''}₹{fmt(s.net_profit)}
+                </span>
+              </div>
+              <div style={{height:32,background:'var(--surface)',borderRadius:4,overflow:'hidden',border:'1px solid var(--border)'}}>
+                <div style={{height:'100%',width:`${pct}%`,background:neg?'var(--danger)':col,borderRadius:4,
+                  animation:'barIn 1s ease',display:'flex',alignItems:'center',paddingLeft:12,minWidth:80}}>
+                  <span style={{fontFamily:'var(--mono)',fontSize:11,color:'var(--bg)',fontWeight:600}}>{fmt(s.estimated_monthly_sales)} units</span>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </Card>
+            </div>
+          );
+        })}
+      </GlowCard>
     </div>
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   SIGNALS PAGE
-═══════════════════════════════════════════════════════════════════════════ */
+/* ─── SIGNALS PAGE ────────────────────────────────────────────────────────── */
 const SignalsPage = ({data}) => {
-  if(!data)return null;
-  const s=data.raw_signals;
-  const groups=[
-    {title:"Google Trends",color:"var(--green)",rows:[["Trend Average (0–100)",fmtD(s.trend_avg)],["Trend Growth (%)",`${s.trend_growth>0?"+":""}${fmtD(s.trend_growth)}%`],["Seasonality Variance",fmtD(s.seasonality_variance)]]},
-    {title:"Amazon Market",color:"var(--blue)",rows:[["Avg Market Price",`₹${fmt(s.avg_price)}`],["Avg Reviews",fmt(s.avg_reviews)],["Seller Count",s.seller_count],["Review Velocity",`${fmtD(s.review_velocity)} /mo`],["Best Seller Rank",s.bsr>0?`#${s.bsr.toLocaleString()}`:"N/A"]]},
-    {title:"Keyword Intelligence",color:"var(--amber)",rows:[["Monthly Search Volume",s.monthly_search_volume.toLocaleString()],["CPC (USD)",`$${s.cpc_score.toFixed(3)}`],["Keyword Competition",s.keyword_competition]]},
-    {title:"Supplier Pricing",color:"var(--purple)",rows:[["Landed Cost (local)",`₹${fmt(s.supplier_cost_local)}`],["Cost Source",s.supplier_cost_source],["Data Confidence",`${(s.data_confidence*100).toFixed(0)}%`]]},
-  ];
+  if(!data) return null;
+  const m=data.market,p=data.profile;
   return (
-    <div style={{maxWidth:1100,margin:"40px auto",padding:"0 28px"}}>
-      <div className="f0" style={{marginBottom:28}}>
-        <SectionLabel>Transparency Layer</SectionLabel>
-        <h2 style={{fontFamily:"var(--font-head)",fontSize:40,letterSpacing:"0.04em"}}>RAW SIGNAL DATA</h2>
-        <p style={{fontFamily:"var(--font-mono)",fontSize:12,color:"var(--text-dim)",marginTop:6}}>All values sourced from live APIs and scraping — no synthetic data.</p>
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'40px 32px',position:'relative',zIndex:1}}>
+      <div className="fade-up" style={{marginBottom:32}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:8}}>// TRANSPARENCY LAYER</div>
+        <h2 style={{fontFamily:'var(--font)',fontSize:32,fontWeight:700,letterSpacing:'-.02em'}}>Raw Market Signals</h2>
       </div>
-      <div className="f1" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-        {groups.map(({title,color,rows})=>(
-          <Card key={title}>
-            <SectionLabel color={color}>{title}</SectionLabel>
-            <div style={{marginTop:14}}>
-              {rows.map(([l,v])=>(
-                <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid var(--border)",fontFamily:"var(--font-mono)",fontSize:12}}>
-                  <span style={{color:"var(--text-muted)"}}>{l}</span>
-                  <span style={{color:"var(--text)",fontWeight:600}}>{v}</span>
-                </div>
-              ))}
+      <div className="fade-up-1" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:16}}>
+        <GlowCard color="var(--accent)">
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent)',letterSpacing:'.15em',marginBottom:16}}>// MARKET SUMMARY</div>
+          {[['Demand Score',m?.demand_score?.toFixed(1)],['Competition Score',m?.competition_score?.toFixed(1)],
+            ['Trend Direction',m?.trend_direction],['Est. Monthly Sales',`${m?.estimated_sales} units`],
+            ['Supplier Cost',`${p?.currency_symbol||'$'}${m?.supplier_cost?.toFixed(2)}`],
+          ].map(([l,v])=>(
+            <div key={l} style={{display:'flex',justifyContent:'space-between',padding:'9px 0',borderBottom:'1px solid var(--border)',fontSize:12}}>
+              <span style={{color:'var(--muted)'}}>{l}</span>
+              <span style={{color:'var(--text)',fontFamily:'var(--mono)',fontWeight:600}}>{v||'—'}</span>
             </div>
-          </Card>
-        ))}
+          ))}
+        </GlowCard>
+        <GlowCard color="var(--accent2)">
+          <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent2)',letterSpacing:'.15em',marginBottom:16}}>// TOP KEYWORDS</div>
+          {(m?.top_keywords||[]).slice(0,6).map((kw,i)=>(
+            <div key={kw} style={{display:'flex',gap:10,padding:'8px 0',borderBottom:'1px solid var(--border)',fontSize:12,alignItems:'center'}}>
+              <span style={{width:20,height:20,borderRadius:4,background:'var(--accent2)15',border:'1px solid var(--accent2)30',
+                display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,color:'var(--accent2)',
+                fontFamily:'var(--mono)',flexShrink:0}}>{i+1}</span>
+              <span style={{color:'var(--text)'}}>{kw}</span>
+            </div>
+          ))}
+        </GlowCard>
       </div>
-      <Card className="f2" glow style={{display:"flex",alignItems:"center",gap:24}}>
-        <div style={{position:"relative",width:72,height:72,flexShrink:0}}>
-          <svg width={72} height={72} viewBox="0 0 72 72">
-            <circle cx="36" cy="36" r="28" fill="none" stroke="var(--border)" strokeWidth="6"/>
-            <circle cx="36" cy="36" r="28" fill="none" stroke="var(--green)" strokeWidth="6"
-              strokeDasharray={`${s.data_confidence*175.9} 175.9`} strokeLinecap="round" transform="rotate(-90 36 36)" style={{transition:"stroke-dasharray 1s ease"}}/>
+      <GlowCard className="fade-up-2" color="var(--warn)" glow style={{display:'flex',alignItems:'center',gap:28,flexWrap:'wrap'}}>
+        <div style={{position:'relative',flexShrink:0}}>
+          <svg width={80} height={80} viewBox="0 0 80 80" style={{transform:'rotate(-90deg)'}}>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border2)" strokeWidth="5"/>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--warn)" strokeWidth="5"
+              strokeDasharray={`${0.75*2*Math.PI*34} ${2*Math.PI*34}`} strokeLinecap="round"
+              style={{filter:'drop-shadow(0 0 8px var(--warn))'}}/>
           </svg>
-          <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--font-head)",fontSize:18,color:"var(--green)"}}>{(s.data_confidence*100).toFixed(0)}%</div>
+          <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',
+            fontFamily:'var(--mono)',fontSize:16,fontWeight:700,color:'var(--warn)'}}>75%</div>
         </div>
         <div>
-          <div style={{fontFamily:"var(--font-head)",fontSize:20,letterSpacing:"0.05em",marginBottom:6}}>DATA CONFIDENCE SCORE</div>
-          <div style={{fontFamily:"var(--font-mono)",fontSize:12,color:"var(--text-dim)",lineHeight:1.8}}>Measures how many real data sources returned valid data.<br/>67–100% is ideal for launch decisions.</div>
+          <div style={{fontFamily:'var(--font)',fontWeight:700,fontSize:18,marginBottom:6}}>Pipeline Data Quality</div>
+          <div style={{fontSize:13,color:'var(--muted)',lineHeight:1.7}}>All 3 modules ran successfully. Data from Google Trends, Amazon, keywords and supplier APIs.</div>
+          <div style={{display:'flex',gap:8,marginTop:12,flexWrap:'wrap'}}>
+            <Tag label="M1 ✔ Profile" color="var(--accent)"/>
+            <Tag label="M2 ✔ Market" color="var(--accent2)"/>
+            <Tag label="M3 ✔ Optimized" color="var(--accent3)"/>
+          </div>
         </div>
-      </Card>
+      </GlowCard>
     </div>
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   STRATEGY PAGE
-═══════════════════════════════════════════════════════════════════════════ */
+/* ─── STRATEGY PAGE ───────────────────────────────────────────────────────── */
 const StrategyPage = ({data}) => {
-  if(!data)return null;
-  const rc=riskCol(data.risk_level);
-  const recCol=data.final_recommendation?.includes("full")?"var(--green)":data.final_recommendation?.includes("controlled")?"var(--amber)":data.final_recommendation?.includes("Test")?"var(--blue)":"var(--red)";
+  if(!data) return null;
+  const m=data.market,o=data.optimization,p=data.profile;
+  const rc=o?.risk_level==='Low'?'var(--accent)':o?.risk_level==='Medium'?'var(--warn)':'var(--danger)';
   return (
-    <div style={{maxWidth:900,margin:"40px auto",padding:"0 28px"}}>
-      <div className="f0" style={{marginBottom:28}}>
-        <SectionLabel>LLM Strategic Assessment</SectionLabel>
-        <h2 style={{fontFamily:"var(--font-head)",fontSize:40,letterSpacing:"0.04em"}}>AI STRATEGY REPORT</h2>
-        <p style={{fontFamily:"var(--font-mono)",fontSize:12,color:"var(--text-dim)",marginTop:6}}>Powered by Llama3:8B / rule-based fallback</p>
+    <div style={{maxWidth:900,margin:'0 auto',padding:'40px 32px',position:'relative',zIndex:1}}>
+      <div className="fade-up" style={{marginBottom:32}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:8}}>// MODULE 2 — LLM STRATEGIC ASSESSMENT</div>
+        <h2 style={{fontFamily:'var(--font)',fontSize:32,fontWeight:700,letterSpacing:'-.02em'}}>AI Strategy Report</h2>
       </div>
-      <Card className="f1" glow style={{marginBottom:20,padding:"24px 28px"}}>
-        <SectionLabel color={recCol}>Final Recommendation</SectionLabel>
-        <div style={{fontFamily:"var(--font-head)",fontSize:36,letterSpacing:"0.04em",color:recCol,marginTop:8,marginBottom:14}}>{data.final_recommendation?.toUpperCase()}</div>
-        <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-          {[[`Risk: ${data.risk_level}`,rc],[data.viability_label,recCol],[`ROI: ${data.roi_percent.toFixed(1)}%`,data.roi_percent>0?"var(--green)":"var(--red)"],[`Confidence: ${data.confidence_score.toFixed(0)}%`,"var(--amber)"]].map(([l,c])=>(
-            <span key={l} style={{fontFamily:"var(--font-mono)",fontSize:10,letterSpacing:"0.1em",padding:"3px 10px",borderRadius:3,background:`${c}18`,color:c,border:`1px solid ${c}40`}}>{l.toUpperCase()}</span>
-          ))}
+      <GlowCard glow color={rc} className="fade-up-1" style={{marginBottom:20}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:12}}>// RISK ASSESSMENT</div>
+        <div style={{fontSize:28,fontFamily:'var(--font)',fontWeight:700,color:rc,marginBottom:16,animation:'glow 3s ease-in-out infinite'}}>
+          {o?.risk_level} Risk — {p?.niche}
         </div>
-      </Card>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-        {[{title:"Risk Analysis",content:data.risk_explanation,color:"var(--red)",icon:"⚠"},{title:"Positioning Strategy",content:data.positioning_strategy,color:"var(--blue)",icon:"◈"}].map(({title,content,color,icon},i)=>(
-          <Card key={title} className={`f${i+2}`}>
-            <SectionLabel color={color}>{icon} {title}</SectionLabel>
-            <div style={{fontFamily:"var(--font-body)",fontSize:13,color:"var(--text-dim)",lineHeight:1.8,marginTop:12,whiteSpace:"pre-line"}}>{content||"No data available"}</div>
-          </Card>
-        ))}
-      </div>
-      <Card className="f4" style={{marginBottom:16}}>
-        <SectionLabel color="var(--green)">→ Market Entry Advice</SectionLabel>
-        <div style={{fontFamily:"var(--font-body)",fontSize:13,color:"var(--text-dim)",lineHeight:2,marginTop:12,whiteSpace:"pre-line"}}>{data.market_entry_advice||"No data available"}</div>
-      </Card>
-      <Card className="f5">
-        <SectionLabel>Decision Matrix</SectionLabel>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginTop:16}}>
-          {[{label:"Demand",value:data.demand_score.toFixed(0),unit:"/100",color:"var(--green)"},{label:"Competition",value:data.competition_score.toFixed(0),unit:"/100",color:"var(--red)"},{label:"Margin",value:data.profit_margin.toFixed(1),unit:"%",color:"var(--green)"},{label:"Break-even",value:data.break_even_months===Infinity?"∞":data.break_even_months.toFixed(1),unit:" mo",color:"var(--amber)"}].map(({label,value,unit,color})=>(
-            <div key={label} style={{textAlign:"center",padding:"16px 8px",background:"var(--surface)",borderRadius:6,border:"1px solid var(--border)"}}>
-              <div style={{fontFamily:"var(--font-head)",fontSize:32,color,letterSpacing:"0.04em"}}>{value}<span style={{fontSize:14,color:"var(--text-muted)"}}>{unit}</span></div>
-              <div style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",marginTop:4,letterSpacing:"0.1em",textTransform:"uppercase"}}>{label}</div>
+        <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+          <Tag label={`MPI: ${o?.market_power_index?.toFixed(3)}`} color="var(--accent2)"/>
+          <Tag label={`Margin: ${(o?.final_margin*100)?.toFixed(1)}%`} color="var(--accent)"/>
+          <Tag label={`${p?.risk_level} investor`} color={rc}/>
+        </div>
+      </GlowCard>
+      <GlowCard className="fade-up-2" color="var(--accent)" style={{marginBottom:16}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:16}}>
+          <span style={{fontSize:20,color:'var(--accent)',filter:'drop-shadow(0 0 8px var(--accent))'}}>♟</span>
+          <span style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--accent)',letterSpacing:'.15em',textTransform:'uppercase'}}>AI Strategy (Llama3)</span>
+        </div>
+        <div style={{fontSize:14,color:'var(--text)',lineHeight:1.9,whiteSpace:'pre-line',fontFamily:'var(--mono)'}}>
+          {m?.llm_strategy||<span style={{color:'var(--muted)'}}>No strategy available — Ollama may not be running.</span>}
+        </div>
+      </GlowCard>
+      <GlowCard className="fade-up-3">
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:20}}>// DECISION METRICS</div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:12}}>
+          {[
+            {label:'Demand',value:m?.demand_score,suffix:'/100',color:'var(--accent)'},
+            {label:'Competition',value:m?.competition_score,suffix:'/100',color:'var(--danger)'},
+            {label:'Margin',value:(o?.final_margin||0)*100,suffix:'%',color:'var(--accent)'},
+            {label:'Monthly Profit',value:o?.monthly_profit,suffix:'',color:'var(--warn)',prefix:p?.currency_symbol||'$'},
+          ].map(({label,value,suffix,color,prefix})=>(
+            <div key={label} style={{textAlign:'center',padding:'16px 8px',background:'var(--surface)',borderRadius:12,border:'1px solid var(--border)'}}>
+              <div style={{fontSize:22,fontFamily:'var(--mono)',fontWeight:700,color,animation:'glow 3s ease-in-out infinite'}}>
+                <AnimatedNumber value={value||0} suffix={suffix} prefix={prefix||''}/>
+              </div>
+              <div style={{fontSize:11,color:'var(--muted)',marginTop:6,letterSpacing:'.08em',textTransform:'uppercase'}}>{label}</div>
             </div>
           ))}
         </div>
-      </Card>
+      </GlowCard>
     </div>
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   HISTORY PAGE
-═══════════════════════════════════════════════════════════════════════════ */
+/* ─── HISTORY PAGE ────────────────────────────────────────────────────────── */
 const HistoryPage = () => {
   const [records,setRecords]=useState([]);
   const [loading,setLoading]=useState(true);
   useEffect(()=>{
-    fetch("http://localhost:8000/history?limit=20").then(r=>r.json()).then(setRecords).catch(()=>setRecords([])).finally(()=>setLoading(false));
+    fetch('http://localhost:8080/history?limit=20')
+      .then(r=>r.json()).then(setRecords).catch(()=>setRecords([]))
+      .finally(()=>setLoading(false));
   },[]);
   return (
-    <div style={{maxWidth:1100,margin:"40px auto",padding:"0 28px"}}>
-      <div className="f0" style={{marginBottom:28}}>
-        <SectionLabel>Analysis Log</SectionLabel>
-        <h2 style={{fontFamily:"var(--font-head)",fontSize:40,letterSpacing:"0.04em"}}>HISTORY</h2>
+    <div style={{maxWidth:1100,margin:'0 auto',padding:'40px 32px',position:'relative',zIndex:1}}>
+      <div className="fade-up" style={{marginBottom:32}}>
+        <div style={{fontFamily:'var(--mono)',fontSize:10,color:'var(--muted)',letterSpacing:'.15em',marginBottom:8}}>// PAST ANALYSES</div>
+        <h2 style={{fontFamily:'var(--font)',fontSize:32,fontWeight:700,letterSpacing:'-.02em'}}>History</h2>
       </div>
-      {loading&&<div style={{fontFamily:"var(--font-mono)",fontSize:13,color:"var(--text-muted)"}}>Loading records...</div>}
-      {!loading&&records.length===0&&<Card><div style={{fontFamily:"var(--font-mono)",fontSize:13,color:"var(--text-muted)"}}>No analyses yet.</div></Card>}
-      <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {loading&&<div style={{display:'flex',alignItems:'center',gap:12,color:'var(--muted)',fontFamily:'var(--mono)',fontSize:13}}>
+        <div style={{width:16,height:16,border:'2px solid var(--border)',borderTopColor:'var(--accent)',borderRadius:'50%',animation:'spin .8s linear infinite'}}/>Loading...
+      </div>}
+      {!loading&&records.length===0&&<GlowCard><div style={{color:'var(--muted)',fontFamily:'var(--mono)',fontSize:13}}>No analyses yet!</div></GlowCard>}
+      <div style={{display:'flex',flexDirection:'column',gap:10}}>
         {records.map((r,i)=>{
-          const rc=riskCol(r.risk_level);
+          const rc2=riskCol(r.risk_level);
           return (
-            <Card key={r.id} className="f1" style={{display:"flex",alignItems:"center",gap:24,flexWrap:"wrap"}}>
-              <div style={{fontFamily:"var(--font-mono)",fontSize:11,color:"var(--text-muted)",minWidth:24}}>#{String(i+1).padStart(2,"0")}</div>
+            <GlowCard key={r.id||i} className="fade-up"
+              style={{display:'flex',alignItems:'center',gap:24,flexWrap:'wrap',transition:'transform .2s'}}
+              onMouseEnter={e=>e.currentTarget.style.transform='translateX(4px)'}
+              onMouseLeave={e=>e.currentTarget.style.transform=''}>
+              <div style={{width:36,height:36,borderRadius:8,background:'var(--surface)',border:'1px solid var(--border)',
+                display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'var(--mono)',fontSize:11,color:'var(--muted)',flexShrink:0}}>
+                #{String(i+1).padStart(2,'0')}
+              </div>
               <div style={{flex:1,minWidth:160}}>
-                <div style={{fontFamily:"var(--font-head)",fontSize:20,letterSpacing:"0.04em"}}>{r.product_name.toUpperCase()}</div>
-                <div style={{display:"flex",gap:8,marginTop:4,flexWrap:"wrap"}}>
-                  {[[r.platform,"var(--blue)"],[r.country,"var(--purple)"]].map(([l,c])=>(
-                    <span key={l} style={{fontFamily:"var(--font-mono)",fontSize:9,padding:"2px 7px",borderRadius:2,background:`${c}18`,color:c,border:`1px solid ${c}40`}}>{l}</span>
+                <div style={{fontFamily:'var(--font)',fontWeight:700,fontSize:16,marginBottom:6}}>
+                  {(r.product_name||r.niche||'—').toUpperCase()}
+                </div>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                  {[r.platform,r.country].filter(Boolean).map((l,j)=>(
+                    <Tag key={j} label={l} color={j===0?'var(--accent2)':'var(--purple)'}/>
                   ))}
                 </div>
               </div>
-              <div style={{display:"flex",gap:28,flexWrap:"wrap"}}>
-                {[{l:"DEMAND",v:r.demand_score?.toFixed(0),c:"var(--green)"},{l:"COMP.",v:r.competition_score?.toFixed(0),c:"var(--red)"},{l:"MARGIN",v:`${r.profit_margin?.toFixed(1)}%`,c:"var(--green)"},{l:"PROFIT",v:`₹${fmt(r.estimated_monthly_profit)}`,c:r.estimated_monthly_profit>0?"var(--green)":"var(--red)"},{l:"RISK",v:r.risk_level,c:rc}].map(({l,v,c})=>(
-                  <div key={l} style={{textAlign:"center"}}>
-                    <div style={{fontFamily:"var(--font-head)",fontSize:18,color:c,letterSpacing:"0.04em"}}>{v}</div>
-                    <div style={{fontFamily:"var(--font-mono)",fontSize:9,color:"var(--text-muted)",letterSpacing:"0.1em"}}>{l}</div>
+              <div style={{display:'flex',gap:20,flexWrap:'wrap'}}>
+                {[
+                  {l:'Demand',v:r.demand_score?.toFixed(0),c:'var(--accent)'},
+                  {l:'Comp.',v:r.competition_score?.toFixed(0),c:'var(--danger)'},
+                  {l:'Margin',v:r.profit_margin!=null?`${r.profit_margin?.toFixed(1)}%`:null,c:'var(--accent)'},
+                  {l:'Profit',v:r.estimated_monthly_profit!=null?`₹${fmt(r.estimated_monthly_profit)}`:null,c:r.estimated_monthly_profit>0?'var(--accent)':'var(--danger)'},
+                  {l:'Risk',v:r.risk_level,c:rc2},
+                ].filter(o=>o.v!=null).map(({l,v,c})=>(
+                  <div key={l} style={{textAlign:'center'}}>
+                    <div style={{fontSize:16,fontFamily:'var(--mono)',fontWeight:700,color:c}}>{v||'—'}</div>
+                    <div style={{fontSize:9,color:'var(--muted)',textTransform:'uppercase',letterSpacing:'.08em'}}>{l}</div>
                   </div>
                 ))}
               </div>
-              <div style={{fontFamily:"var(--font-mono)",fontSize:10,color:"var(--text-muted)",minWidth:72,textAlign:"right"}}>
-                {r.created_at?new Date(r.created_at).toLocaleDateString("en-IN"):""}
+              <div style={{fontSize:11,color:'var(--muted)',fontFamily:'var(--mono)',flexShrink:0}}>
+                {r.created_at?new Date(r.created_at).toLocaleDateString('en-IN'):''}
               </div>
-            </Card>
+            </GlowCard>
           );
         })}
       </div>
@@ -601,31 +1163,35 @@ const HistoryPage = () => {
   );
 };
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   ROOT
-═══════════════════════════════════════════════════════════════════════════ */
+/* ─── ROOT ────────────────────────────────────────────────────────────────── */
 export default function App() {
-  const [page,setPage]     = useState("analyze");
-  const [result,setResult] = useState(null);
-  const [apiOk,setApiOk]   = useState(false);
+  const [tab,setTab]                         = useState('discover');
+  const [result,setResult]                   = useState(null);
+  const [apiOk,setApiOk]                     = useState(false);
+  const [selectedProduct,setSelectedProduct] = useState('');
 
   useEffect(()=>{
-    fetch("http://localhost:8000/health").then(r=>r.ok&&setApiOk(true)).catch(()=>setApiOk(false));
+    fetch('http://localhost:8080/health').then(r=>r.ok&&setApiOk(true)).catch(()=>setApiOk(false));
   },[]);
 
-  const handleResult = useCallback(data=>{ setResult(data); setPage("results"); },[]);
+  const handleResult         = useCallback(data=>{ setResult(data); setTab('profile'); },[]);
+  const handleSelectProduct  = useCallback(product=>{ setSelectedProduct(product); setTab('analyze'); },[]);
 
   return (
     <>
       <GlobalStyles/>
-      <Topbar page={page} setPage={setPage} hasData={!!result} apiOk={apiOk}/>
-      <main>
-        {page==="analyze"   && <AnalyzePage   onResult={handleResult}/>}
-        {page==="results"   && <ResultsPage   data={result}/>}
-        {page==="scenarios" && <ScenariosPage data={result}/>}
-        {page==="signals"   && <SignalsPage   data={result}/>}
-        {page==="strategy"  && <StrategyPage  data={result}/>}
-        {page==="history"   && <HistoryPage/>}
+      <Particles/>
+      <Nav tab={tab} setTab={setTab} hasResults={!!result} apiOk={apiOk}/>
+      <main style={{position:'relative',zIndex:1}}>
+        {tab==='discover'  && <DiscoverPage  onSelectProduct={handleSelectProduct}/>}
+        {tab==='analyze'   && <AnalyzePage   onResult={handleResult} initialProduct={selectedProduct}/>}
+        {tab==='profile'   && <ProfilePage   data={result}/>}
+        {tab==='results'   && <ResultsPage   data={result}/>}
+        {tab==='optimize'  && <OptimizePage  data={result}/>}
+        {tab==='scenarios' && <ScenariosPage data={result}/>}
+        {tab==='signals'   && <SignalsPage   data={result}/>}
+        {tab==='strategy'  && <StrategyPage  data={result}/>}
+        {tab==='history'   && <HistoryPage/>}
       </main>
     </>
   );

@@ -13,6 +13,15 @@ Orchestrates:
 from __future__ import annotations
 
 import logging
+import sys
+import os
+
+# Path setup
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+_GLOBAL = os.path.join(_ROOT, "global")
+for _p in (_ROOT, _GLOBAL):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
